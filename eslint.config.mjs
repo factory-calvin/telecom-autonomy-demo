@@ -14,6 +14,10 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Ignore backend build artifacts
     "backend/build/**",
+    // Ignore docs build and generated files
+    "docs/build/**",
+    "docs/.docusaurus/**",
+    "docs/node_modules/**",
   ]),
   {
     rules: {
