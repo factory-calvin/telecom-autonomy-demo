@@ -2,14 +2,7 @@
 
 import * as React from "react"
 import { usePathname } from "next/navigation"
-import {
-  LayoutDashboard,
-  Users,
-  CreditCard,
-  Smartphone,
-  BarChart3,
-  Ticket,
-} from "lucide-react"
+import { LayoutDashboard, Users, CreditCard, Smartphone, BarChart3, Ticket } from "lucide-react"
 
 import { Logo } from "@/components/logo"
 import { NavMain } from "@/components/nav-main"

@@ -36,8 +36,8 @@ export function HealthStatus() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <div className="h-2 w-2 rounded-full bg-yellow-500 animate-pulse" />
+      <div className="text-muted-foreground flex items-center gap-2">
+        <div className="h-2 w-2 animate-pulse rounded-full bg-yellow-500" />
         <span className="text-sm">Checking...</span>
       </div>
     )
@@ -55,7 +55,7 @@ export function HealthStatus() {
   return (
     <div className="flex items-center gap-2">
       <div className="h-2 w-2 rounded-full bg-green-500" />
-      <span className="text-sm text-muted-foreground">
+      <span className="text-muted-foreground text-sm">
         {health?.service} v{health?.version}
       </span>
     </div>

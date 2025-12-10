@@ -12,11 +12,7 @@ import {
   Sun,
 } from "lucide-react"
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,8 +55,8 @@ export function NavUser({
                 <AvatarFallback className="rounded-lg">JS</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left leading-tight">
-                <span className="truncate text-ui">{user.name}</span>
-                <span className="truncate text-caption text-muted-foreground">{user.email}</span>
+                <span className="text-ui truncate">{user.name}</span>
+                <span className="text-caption text-muted-foreground truncate">{user.email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -78,8 +74,8 @@ export function NavUser({
                   <AvatarFallback className="rounded-lg">JS</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left leading-tight">
-                  <span className="truncate text-ui">{user.name}</span>
-                  <span className="truncate text-caption text-muted-foreground">{user.email}</span>
+                  <span className="text-ui truncate">{user.name}</span>
+                  <span className="text-caption text-muted-foreground truncate">{user.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>

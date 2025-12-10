@@ -36,47 +36,53 @@ export function useUsage(filters: UsageFilters = {}) {
   const [totalElements, setTotalElements] = useState(0)
   const pageRef = useRef(0)
 
-  const buildUrl = useCallback((pageNum: number) => {
-    const params = new URLSearchParams()
-    params.set("page", pageNum.toString())
-    params.set("size", "50")
-    if (filters.type) params.set("type", filters.type)
-    if (filters.customerId) params.set("customerId", filters.customerId.toString())
-    if (filters.dateFrom) params.set("dateFrom", filters.dateFrom)
-    if (filters.dateTo) params.set("dateTo", filters.dateTo)
-    return `/api/usage?${params.toString()}`
-  }, [filters.type, filters.customerId, filters.dateFrom, filters.dateTo])
+  const buildUrl = useCallback(
+    (pageNum: number) => {
+      const params = new URLSearchParams()
+      params.set("page", pageNum.toString())
+      params.set("size", "50")
+      if (filters.type) params.set("type", filters.type)
+      if (filters.customerId) params.set("customerId", filters.customerId.toString())
+      if (filters.dateFrom) params.set("dateFrom", filters.dateFrom)
+      if (filters.dateTo) params.set("dateTo", filters.dateTo)
+      return `/api/usage?${params.toString()}`
+    },
+    [filters.type, filters.customerId, filters.dateFrom, filters.dateTo]
+  )
 
-  const fetchRecords = useCallback(async (reset = true) => {
-    try {
-      if (reset) {
-        setLoading(true)
-        pageRef.current = 0
-      } else {
-        setLoadingMore(true)
-        pageRef.current += 1
+  const fetchRecords = useCallback(
+    async (reset = true) => {
+      try {
+        if (reset) {
+          setLoading(true)
+          pageRef.current = 0
+        } else {
+          setLoadingMore(true)
+          pageRef.current += 1
+        }
+
+        const res = await fetch(buildUrl(pageRef.current))
+        if (!res.ok) throw new Error("Failed to fetch usage records")
+        const data: PagedResponse = await res.json()
+
+        if (reset) {
+          setRecords(data.content || [])
+        } else {
+          setRecords((prev) => [...prev, ...(data.content || [])])
+        }
+
+        setHasNext(data.hasNext ?? false)
+        setTotalElements(data.totalElements ?? 0)
+        setError(null)
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Unknown error")
+      } finally {
+        setLoading(false)
+        setLoadingMore(false)
       }
-      
-      const res = await fetch(buildUrl(pageRef.current))
-      if (!res.ok) throw new Error("Failed to fetch usage records")
-      const data: PagedResponse = await res.json()
-      
-      if (reset) {
-        setRecords(data.content || [])
-      } else {
-        setRecords(prev => [...prev, ...(data.content || [])])
-      }
-      
-      setHasNext(data.hasNext ?? false)
-      setTotalElements(data.totalElements ?? 0)
-      setError(null)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Unknown error")
-    } finally {
-      setLoading(false)
-      setLoadingMore(false)
-    }
-  }, [buildUrl])
+    },
+    [buildUrl]
+  )
 
   const loadMore = useCallback(() => {
     if (!loadingMore && hasNext) {

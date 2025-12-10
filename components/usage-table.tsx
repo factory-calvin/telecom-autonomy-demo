@@ -29,7 +29,7 @@ const typeUnits: Record<string, string> = {
 export function UsageTable({ records }: UsageTableProps) {
   return (
     <Table>
-      <TableHeader className="sticky top-0 bg-background z-10">
+      <TableHeader className="bg-background sticky top-0 z-10">
         <TableRow>
           <TableHead className="w-[60px]">ID</TableHead>
           <TableHead>Customer</TableHead>
@@ -45,7 +45,9 @@ export function UsageTable({ records }: UsageTableProps) {
             <TableCell className="font-medium">{record.id}</TableCell>
             <TableCell>{record.customer_name}</TableCell>
             <TableCell>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${typeColors[record.type]}`}>
+              <span
+                className={`rounded-full px-2 py-1 text-xs font-medium ${typeColors[record.type]}`}
+              >
                 {record.type}
               </span>
             </TableCell>

@@ -3,11 +3,7 @@
 import { ChevronRight, type LucideIcon } from "lucide-react"
 import Link from "next/link"
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -76,17 +72,13 @@ export function NavMain({
                 asChild
                 isActive={item.isActive}
                 className={cn(
-                  item.isActive && "bg-primary/10 text-primary font-medium border-l-2 border-primary"
+                  item.isActive &&
+                    "bg-primary/10 text-primary border-primary border-l-2 font-medium"
                 )}
               >
                 <Link href={item.url}>
                   {item.icon && (
-                    <item.icon
-                      className={cn(
-                        "size-4",
-                        item.isActive && "text-primary"
-                      )}
-                    />
+                    <item.icon className={cn("size-4", item.isActive && "text-primary")} />
                   )}
                   <span className="text-ui">{item.title}</span>
                 </Link>

@@ -23,7 +23,7 @@ export function PlansTable({ plans, onEdit, onDelete }: PlansTableProps) {
 
   return (
     <Table>
-      <TableHeader className="sticky top-0 bg-background z-10">
+      <TableHeader className="bg-background sticky top-0 z-10">
         <TableRow>
           <TableHead className="w-[60px]">ID</TableHead>
           <TableHead>Name</TableHead>
@@ -41,11 +41,16 @@ export function PlansTable({ plans, onEdit, onDelete }: PlansTableProps) {
             <TableCell className="font-medium">{plan.id}</TableCell>
             <TableCell>{plan.name}</TableCell>
             <TableCell className="text-right">${plan.monthly_price.toFixed(2)}</TableCell>
-            <TableCell className="text-right">{formatLimit(plan.data_limit_gb)}{plan.data_limit_gb ? " GB" : ""}</TableCell>
+            <TableCell className="text-right">
+              {formatLimit(plan.data_limit_gb)}
+              {plan.data_limit_gb ? " GB" : ""}
+            </TableCell>
             <TableCell className="text-right">{formatLimit(plan.minutes_limit)}</TableCell>
             <TableCell className="text-right">{formatLimit(plan.sms_limit)}</TableCell>
             <TableCell>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${plan.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>
+              <span
+                className={`rounded-full px-2 py-1 text-xs font-medium ${plan.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}
+              >
                 {plan.is_active ? "Active" : "Inactive"}
               </span>
             </TableCell>

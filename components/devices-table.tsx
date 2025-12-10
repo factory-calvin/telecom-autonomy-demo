@@ -48,7 +48,9 @@ export function DevicesTable({ devices, onEdit, onDelete }: DevicesTableProps) {
             <TableCell className="font-mono text-sm">{device.sim_number}</TableCell>
             <TableCell>{device.customer_name || "-"}</TableCell>
             <TableCell>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[device.status]}`}>
+              <span
+                className={`rounded-full px-2 py-1 text-xs font-medium ${statusColors[device.status]}`}
+              >
                 {device.status}
               </span>
             </TableCell>

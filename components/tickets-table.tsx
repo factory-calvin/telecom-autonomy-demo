@@ -35,7 +35,7 @@ const statusColors: Record<string, string> = {
 export function TicketsTable({ tickets, onEdit, onDelete }: TicketsTableProps) {
   return (
     <Table>
-      <TableHeader className="sticky top-0 bg-background z-10">
+      <TableHeader className="bg-background sticky top-0 z-10">
         <TableRow>
           <TableHead className="w-[60px]">ID</TableHead>
           <TableHead>Customer</TableHead>
@@ -53,12 +53,16 @@ export function TicketsTable({ tickets, onEdit, onDelete }: TicketsTableProps) {
             <TableCell>{ticket.customer_name}</TableCell>
             <TableCell className="max-w-[200px] truncate">{ticket.subject}</TableCell>
             <TableCell>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityColors[ticket.priority]}`}>
+              <span
+                className={`rounded-full px-2 py-1 text-xs font-medium ${priorityColors[ticket.priority]}`}
+              >
                 {ticket.priority}
               </span>
             </TableCell>
             <TableCell>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[ticket.status]}`}>
+              <span
+                className={`rounded-full px-2 py-1 text-xs font-medium ${statusColors[ticket.status]}`}
+              >
                 {ticket.status.replace("_", " ")}
               </span>
             </TableCell>

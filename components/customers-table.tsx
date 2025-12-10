@@ -27,7 +27,7 @@ const statusColors: Record<string, string> = {
 export function CustomersTable({ customers, onEdit, onDelete }: CustomersTableProps) {
   return (
     <Table>
-      <TableHeader className="sticky top-0 bg-background z-10">
+      <TableHeader className="bg-background sticky top-0 z-10">
         <TableRow>
           <TableHead className="w-[60px]">ID</TableHead>
           <TableHead>Name</TableHead>
@@ -43,12 +43,16 @@ export function CustomersTable({ customers, onEdit, onDelete }: CustomersTablePr
         {customers.map((customer) => (
           <TableRow key={customer.id}>
             <TableCell className="font-medium">{customer.id}</TableCell>
-            <TableCell>{customer.first_name} {customer.last_name}</TableCell>
+            <TableCell>
+              {customer.first_name} {customer.last_name}
+            </TableCell>
             <TableCell className="text-muted-foreground">{customer.email}</TableCell>
             <TableCell>{customer.phone}</TableCell>
             <TableCell>{customer.plan_name || "-"}</TableCell>
             <TableCell>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[customer.status]}`}>
+              <span
+                className={`rounded-full px-2 py-1 text-xs font-medium ${statusColors[customer.status]}`}
+              >
                 {customer.status}
               </span>
             </TableCell>
