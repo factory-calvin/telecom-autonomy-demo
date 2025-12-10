@@ -40,14 +40,16 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-venv/
-.venv/
-*.egg-info/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
+# Java/Gradle
+backend/.gradle/
+backend/build/
+backend/bin/
 backend/app.db
+*.class
+*.jar
+*.war
+!backend/gradle/wrapper/gradle-wrapper.jar
+
+# Python
+scripts/__pycache__/
+*.pyc
