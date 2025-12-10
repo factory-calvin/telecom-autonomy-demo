@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -42,14 +42,51 @@ yarn-error.log*
 next-env.d.ts
 
 # Java/Gradle
-backend/.gradle/
-backend/build/
+.gradle/
+**/build/
+!**/src/main/**/build/
+!**/src/test/**/build/
 backend/bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
 backend/app.db
 *.class
 *.jar
 *.war
 !backend/gradle/wrapper/gradle-wrapper.jar
+HELP.md
+
+# IDE - IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# IDE - Eclipse/STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# IDE - NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# IDE - VS Code
+.vscode/
+
+# Docusaurus (docs/)
+.docusaurus/
+.cache-loader/
 
 # Python
 scripts/__pycache__/

@@ -95,9 +95,53 @@ Recommended extensions (auto-installed in dev container):
 }
 ```
 
-## Pre-commit Hooks
+## Git Hooks
 
-Husky runs lint-staged on every commit:
+Husky runs the following hooks on every commit:
+
+### Pre-commit
+
+Runs lint-staged to format and lint staged files:
 
 - ESLint + Prettier for TypeScript files
 - Prettier for JSON, Markdown, CSS
+
+### Commit Message
+
+Commit messages must follow the [Conventional Commits](https://www.conventionalcommits.org/) format:
+
+```
+<type>(<scope>)?: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+**Valid types:**
+
+| Type       | Description                                             |
+| ---------- | ------------------------------------------------------- |
+| `feat`     | A new feature                                           |
+| `fix`      | A bug fix                                               |
+| `docs`     | Documentation only changes                              |
+| `style`    | Code style changes (formatting, semicolons, etc)        |
+| `refactor` | Code change that neither fixes a bug nor adds a feature |
+| `perf`     | Performance improvement                                 |
+| `test`     | Adding or updating tests                                |
+| `build`    | Build system or external dependency changes             |
+| `ci`       | CI configuration changes                                |
+| `chore`    | Other changes that don't modify src or test files       |
+| `revert`   | Reverts a previous commit                               |
+
+**Examples:**
+
+```bash
+feat: add customer search functionality
+fix(api): resolve null pointer in ticket endpoint
+docs: update API documentation
+refactor(hooks): simplify useCustomers logic
+chore!: drop support for Node 18
+```
+
+**Breaking changes:** Add `!` after the type/scope to indicate a breaking change (e.g., `feat!: remove deprecated API`).

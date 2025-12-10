@@ -1,0 +1,23 @@
+#!/bin/sh
+
+commit_msg=$(cat "$1")
+
+# Pattern: ^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\(.+\))?(!)?: .+
+# Using extended regex with grep -E for portability
+if ! echo "$commit_msg" | grep -Eq "^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-zA-Z0-9_.-]+\))?(!)?: .+"; then
+  echo "ERROR: Invalid commit message format."
+  echo ""
+  echo "Commit message must match pattern:"
+  echo "  <type>(<scope>)?: <description>"
+  echo ""
+  echo "Valid types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test"
+  echo ""
+  echo "Examples:"
+  echo "  feat: add user authentication"
+  echo "  fix(api): resolve null pointer exception"
+  echo "  docs: update README with setup instructions"
+  echo "  chore!: drop support for Node 16"
+  echo ""
+  echo "Your message: $commit_msg"
+  exit 1
+fi
