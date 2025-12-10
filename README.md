@@ -123,6 +123,26 @@ pnpm lint
 | `/api/tickets`     | GET, POST, PUT, DELETE | Ticket CRUD          |
 | `/api/dashboard/*` | GET                    | Dashboard statistics |
 
+## Documentation
+
+Comprehensive documentation is available via Docusaurus:
+
+```bash
+pnpm dev:docs    # Start docs server (port 3001)
+pnpm dev:all     # Start frontend, backend, and docs together
+```
+
+- **Local**: http://localhost:3001
+- **API Docs (Swagger)**: http://localhost:8080/swagger-ui.html (when backend is running)
+
+Documentation covers:
+
+- Getting Started guide
+- Architecture overview
+- Frontend components and hooks
+- Backend API reference and data models
+- Development setup, testing, and deployment guides
+
 ## Project Structure
 
 ```
@@ -139,6 +159,9 @@ pnpm lint
 │       ├── repository/     # Spring Data repos
 │       ├── controller/     # REST controllers
 │       └── DataSeeder.java # Fallback seeder
+├── docs/                   # Docusaurus documentation site
+│   ├── docs/               # Markdown documentation
+│   └── src/                # Custom pages
 ├── scripts/                # Utility scripts
 │   ├── seed-database.py    # Production-like data seeder
 │   └── requirements.txt    # Python dependencies

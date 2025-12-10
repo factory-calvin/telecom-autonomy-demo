@@ -182,3 +182,49 @@ scripts/
 - Test files: `__tests__/*.test.tsx`
 - Backend tests use JUnit 5
 - Test files: `backend/src/test/java/**/*Test.java`
+
+## Documentation
+
+Documentation is built with Docusaurus and located in the `docs/` directory.
+
+### Running Docs
+
+```bash
+pnpm dev:docs     # Start docs server only (port 3001)
+pnpm dev:all      # Start frontend, backend, and docs together
+```
+
+### Docs Structure
+
+```
+docs/
+├── docs/
+│   ├── getting-started.md      # Quick start guide
+│   ├── architecture.md         # System architecture overview
+│   ├── frontend/
+│   │   ├── overview.md         # Frontend structure
+│   │   ├── components.md       # UI components guide
+│   │   └── hooks.md            # Custom hooks reference
+│   ├── backend/
+│   │   ├── overview.md         # Backend structure
+│   │   ├── api.md              # REST API reference
+│   │   └── models.md           # JPA entity documentation
+│   └── development/
+│       ├── setup.md            # Development environment setup
+│       ├── testing.md          # Testing guide
+│       └── deployment.md       # Deployment instructions
+├── src/
+│   └── pages/
+│       └── index.tsx           # Landing page
+├── docusaurus.config.ts        # Site configuration
+└── sidebars.ts                 # Navigation structure
+```
+
+### API Documentation
+
+The backend auto-generates OpenAPI/Swagger documentation:
+
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **OpenAPI JSON**: http://localhost:8080/v3/api-docs
+
+Available when the backend is running (`pnpm dev:backend` or `pnpm dev`).
