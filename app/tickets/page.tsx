@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
@@ -11,11 +11,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -27,42 +23,88 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Plus, X, Loader2 } from "lucide-react"
 import { HealthStatus } from "@/components/health-status"
 import { TicketsTable } from "@/components/tickets-table"
-import { useTickets, type Ticket, type TicketFilters } from "@/hooks/use-tickets"
+import { TicketFormDialog } from "@/components/ticket-form-dialog"
+import {
+  useTickets,
+  type Ticket,
+  type TicketFilters,
+  type TicketCreate,
+  type TicketUpdate,
+} from "@/hooks/use-tickets"
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll"
 
 export default function TicketsPage() {
   const [filters, setFilters] = useState<TicketFilters>({})
-  const { tickets, loading, loadingMore, error, hasNext, totalElements, loadMore, deleteTicket } = useTickets(filters)
+  const {
+    tickets,
+    loading,
+    loadingMore,
+    error,
+    hasNext,
+    totalElements,
+    loadMore,
+    createTicket,
+    updateTicket,
+    deleteTicket,
+  } = useTickets(filters)
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  const handleScroll = useCallback(() => {
-    const el = scrollRef.current
-    if (!el || loadingMore || !hasNext) return
-    const { scrollTop, scrollHeight, clientHeight } = el
-    if (scrollHeight - scrollTop - clientHeight < 200) {
-      loadMore()
-    }
-  }, [loadMore, loadingMore, hasNext])
+  useInfiniteScroll({
+    scrollRef,
+    loadMore,
+    hasNext,
+    loading: loadingMore,
+  })
 
-  useEffect(() => {
-    const el = scrollRef.current
-    if (!el) return
-    el.addEventListener("scroll", handleScroll)
-    return () => el.removeEventListener("scroll", handleScroll)
-  }, [handleScroll])
+  const [formOpen, setFormOpen] = useState(false)
+  const [editingTicket, setEditingTicket] = useState<Ticket | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null)
 
   const clearFilters = () => setFilters({})
   const hasActiveFilters = filters.priority || filters.status || filters.customerId
 
-  const handleEdit = (ticket: Ticket) => {
-    alert(`Edit ticket: ${ticket.subject}`)
+  const handleAdd = () => {
+    setEditingTicket(null)
+    setFormOpen(true)
   }
 
-  const handleDelete = async (ticket: Ticket) => {
-    if (confirm(`Delete ticket "${ticket.subject}"?`)) {
-      await deleteTicket(ticket.id)
+  const handleEdit = (ticket: Ticket) => {
+    setEditingTicket(ticket)
+    setFormOpen(true)
+  }
+
+  const handleDeleteClick = (ticket: Ticket) => {
+    setTicketToDelete(ticket)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (ticketToDelete) {
+      await deleteTicket(ticketToDelete.id)
+      setDeleteDialogOpen(false)
+      setTicketToDelete(null)
+    }
+  }
+
+  const handleFormSubmit = async (data: TicketCreate | TicketUpdate) => {
+    if (editingTicket) {
+      await updateTicket(editingTicket.id, data as TicketUpdate)
+    } else {
+      await createTicket(data as TicketCreate)
     }
   }
 
@@ -71,7 +113,7 @@ export default function TicketsPage() {
       <AppSidebar />
       <SidebarInset className="overflow-hidden">
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4 flex-1">
+          <div className="flex flex-1 items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
             <Breadcrumb>
@@ -90,17 +132,19 @@ export default function TicketsPage() {
             </div>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-hidden">
-          <Card className="flex flex-col flex-1 overflow-hidden">
+        <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4 pt-0">
+          <Card className="flex flex-1 flex-col overflow-hidden">
             <CardHeader className="shrink-0 space-y-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-headline-2">Support Tickets</CardTitle>
                 <div className="flex items-center gap-4">
-                  <span className="text-sm text-muted-foreground">
-                    {loading ? "Loading..." : `${(tickets?.length ?? 0).toLocaleString()} of ${(totalElements ?? 0).toLocaleString()} tickets`}
+                  <span className="text-muted-foreground text-sm">
+                    {loading
+                      ? "Loading..."
+                      : `${(tickets?.length ?? 0).toLocaleString()} of ${(totalElements ?? 0).toLocaleString()} tickets`}
                   </span>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
+                  <Button onClick={handleAdd}>
+                    <Plus className="mr-2 h-4 w-4" />
                     Create Ticket
                   </Button>
                 </div>
@@ -110,7 +154,12 @@ export default function TicketsPage() {
                   <Label htmlFor="priority-filter">Priority</Label>
                   <Select
                     value={filters.priority || "all"}
-                    onValueChange={(v: string) => setFilters(f => ({ ...f, priority: v === "all" ? null : v as TicketFilters["priority"] }))}
+                    onValueChange={(v: string) =>
+                      setFilters((f) => ({
+                        ...f,
+                        priority: v === "all" ? null : (v as TicketFilters["priority"]),
+                      }))
+                    }
                   >
                     <SelectTrigger id="priority-filter" className="w-[120px]">
                       <SelectValue />
@@ -128,7 +177,12 @@ export default function TicketsPage() {
                   <Label htmlFor="status-filter">Status</Label>
                   <Select
                     value={filters.status || "all"}
-                    onValueChange={(v: string) => setFilters(f => ({ ...f, status: v === "all" ? null : v as TicketFilters["status"] }))}
+                    onValueChange={(v: string) =>
+                      setFilters((f) => ({
+                        ...f,
+                        status: v === "all" ? null : (v as TicketFilters["status"]),
+                      }))
+                    }
                   >
                     <SelectTrigger id="status-filter" className="w-[140px]">
                       <SelectValue />
@@ -150,12 +204,17 @@ export default function TicketsPage() {
                     placeholder="Any"
                     className="w-[100px]"
                     value={filters.customerId || ""}
-                    onChange={(e) => setFilters(f => ({ ...f, customerId: e.target.value ? Number(e.target.value) : null }))}
+                    onChange={(e) =>
+                      setFilters((f) => ({
+                        ...f,
+                        customerId: e.target.value ? Number(e.target.value) : null,
+                      }))
+                    }
                   />
                 </div>
                 {hasActiveFilters && (
                   <Button variant="ghost" size="sm" onClick={clearFilters}>
-                    <X className="h-4 w-4 mr-1" />
+                    <X className="mr-1 h-4 w-4" />
                     Clear
                   </Button>
                 )}
@@ -163,23 +222,27 @@ export default function TicketsPage() {
             </CardHeader>
             <CardContent className="flex-1 overflow-hidden">
               {loading ? (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
-                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                <div className="text-muted-foreground flex h-full items-center justify-center">
+                  <Loader2 className="mr-2 h-6 w-6 animate-spin" />
                   Loading...
                 </div>
               ) : error ? (
-                <div className="text-center py-8 text-red-500">{error}</div>
+                <div className="py-8 text-center text-red-500">{error}</div>
               ) : (
                 <div ref={scrollRef} className="h-full overflow-auto">
-                  <TicketsTable tickets={tickets} onEdit={handleEdit} onDelete={handleDelete} />
+                  <TicketsTable
+                    tickets={tickets}
+                    onEdit={handleEdit}
+                    onDelete={handleDeleteClick}
+                  />
                   {loadingMore && (
-                    <div className="flex items-center justify-center py-4 text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    <div className="text-muted-foreground flex items-center justify-center py-4">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Loading more...
                     </div>
                   )}
                   {!hasNext && tickets.length > 0 && (
-                    <div className="text-center py-4 text-muted-foreground text-sm">
+                    <div className="text-muted-foreground py-4 text-center text-sm">
                       End of results
                     </div>
                   )}
@@ -188,6 +251,29 @@ export default function TicketsPage() {
             </CardContent>
           </Card>
         </div>
+
+        <TicketFormDialog
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          ticket={editingTicket}
+          onSubmit={handleFormSubmit}
+        />
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Ticket</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete &quot;{ticketToDelete?.subject}&quot;? This action
+                cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteConfirm}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </SidebarInset>
     </SidebarProvider>
   )

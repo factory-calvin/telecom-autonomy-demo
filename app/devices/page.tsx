@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
@@ -10,28 +11,61 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Plus } from "lucide-react"
 import { HealthStatus } from "@/components/health-status"
 import { DevicesTable } from "@/components/devices-table"
-import { useDevices, type Device } from "@/hooks/use-devices"
+import { DeviceFormDialog } from "@/components/device-form-dialog"
+import { useDevices, type Device, type DeviceCreate, type DeviceUpdate } from "@/hooks/use-devices"
 
 export default function DevicesPage() {
-  const { devices, loading, error, deleteDevice } = useDevices()
+  const { devices, loading, error, createDevice, updateDevice, deleteDevice } = useDevices()
 
-  const handleEdit = (device: Device) => {
-    alert(`Edit device: ${device.model} (${device.imei})`)
+  const [formOpen, setFormOpen] = useState(false)
+  const [editingDevice, setEditingDevice] = useState<Device | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deviceToDelete, setDeviceToDelete] = useState<Device | null>(null)
+
+  const handleAdd = () => {
+    setEditingDevice(null)
+    setFormOpen(true)
   }
 
-  const handleDelete = async (device: Device) => {
-    if (confirm(`Delete device "${device.model}"?`)) {
-      await deleteDevice(device.id)
+  const handleEdit = (device: Device) => {
+    setEditingDevice(device)
+    setFormOpen(true)
+  }
+
+  const handleDeleteClick = (device: Device) => {
+    setDeviceToDelete(device)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (deviceToDelete) {
+      await deleteDevice(deviceToDelete.id)
+      setDeleteDialogOpen(false)
+      setDeviceToDelete(null)
+    }
+  }
+
+  const handleFormSubmit = async (data: DeviceCreate | DeviceUpdate) => {
+    if (editingDevice) {
+      await updateDevice(editingDevice.id, data as DeviceUpdate)
+    } else {
+      await createDevice(data as DeviceCreate)
     }
   }
 
@@ -40,7 +74,7 @@ export default function DevicesPage() {
       <AppSidebar />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4 flex-1">
+          <div className="flex flex-1 items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
             <Breadcrumb>
@@ -63,22 +97,45 @@ export default function DevicesPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
               <CardTitle className="text-headline-2">Device Inventory</CardTitle>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
+              <Button onClick={handleAdd}>
+                <Plus className="mr-2 h-4 w-4" />
                 Add Device
               </Button>
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                <div className="text-muted-foreground py-8 text-center">Loading...</div>
               ) : error ? (
-                <div className="text-center py-8 text-red-500">{error}</div>
+                <div className="py-8 text-center text-red-500">{error}</div>
               ) : (
-                <DevicesTable devices={devices} onEdit={handleEdit} onDelete={handleDelete} />
+                <DevicesTable devices={devices} onEdit={handleEdit} onDelete={handleDeleteClick} />
               )}
             </CardContent>
           </Card>
         </div>
+
+        <DeviceFormDialog
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          device={editingDevice}
+          onSubmit={handleFormSubmit}
+        />
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Device</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete {deviceToDelete?.model} ({deviceToDelete?.imei})?
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteConfirm}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </SidebarInset>
     </SidebarProvider>
   )

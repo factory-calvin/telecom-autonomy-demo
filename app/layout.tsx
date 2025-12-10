@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
-import localFont from "next/font/local";
-import { Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
-import "./globals.css";
+import type { Metadata } from "next"
+import localFont from "next/font/local"
+import { Geist_Mono } from "next/font/google"
+import { ThemeProvider } from "@/components/theme-provider"
+import "./globals.css"
 
 const teleNeoOffice = localFont({
   src: [
@@ -34,28 +34,26 @@ const teleNeoOffice = localFont({
   ],
   variable: "--font-tele-neo",
   display: "swap",
-});
+})
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
+})
 
 export const metadata: Metadata = {
   title: "FactoryFone Admin",
   description: "Telecom user administration portal",
-};
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${teleNeoOffice.className} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${teleNeoOffice.className} ${geistMono.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -66,5 +64,5 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
-  );
+  )
 }

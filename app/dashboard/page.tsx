@@ -8,11 +8,7 @@ import {
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { HealthStatus } from "@/components/health-status"
 import { useDashboardStats } from "@/hooks/use-dashboard-stats"
@@ -81,7 +77,7 @@ export default function DashboardPage() {
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <div className="flex items-center justify-center h-screen">
+          <div className="flex h-screen items-center justify-center">
             <div className="text-muted-foreground">Loading dashboard...</div>
           </div>
         </SidebarInset>
@@ -94,7 +90,7 @@ export default function DashboardPage() {
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <div className="flex items-center justify-center h-screen">
+          <div className="flex h-screen items-center justify-center">
             <div className="text-red-500">{error}</div>
           </div>
         </SidebarInset>
@@ -107,7 +103,7 @@ export default function DashboardPage() {
       <AppSidebar />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4 flex-1">
+          <div className="flex flex-1 items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
             <Breadcrumb>
@@ -129,7 +125,7 @@ export default function DashboardPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-body-small">Active Customers</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <Users className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
                 <div className="text-headline-2">{stats?.active_customers || 0}</div>
@@ -139,7 +135,7 @@ export default function DashboardPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-body-small">Monthly Revenue</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <DollarSign className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
                 <div className="text-headline-2">
@@ -151,7 +147,7 @@ export default function DashboardPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-body-small">Open Tickets</CardTitle>
-                <Ticket className="h-4 w-4 text-muted-foreground" />
+                <Ticket className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
                 <div className="text-headline-2">{stats?.open_tickets || 0}</div>
@@ -161,7 +157,7 @@ export default function DashboardPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-body-small">Devices in Use</CardTitle>
-                <Smartphone className="h-4 w-4 text-muted-foreground" />
+                <Smartphone className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
                 <div className="text-headline-2">{stats?.devices_in_use || 0}</div>
@@ -177,10 +173,7 @@ export default function DashboardPage() {
                 <CardTitle className="text-headline-3">Customers by Plan</CardTitle>
               </CardHeader>
               <CardContent>
-                <ChartContainer
-                  config={customersByPlanConfig}
-                  className="mx-auto h-[250px] w-full"
-                >
+                <ChartContainer config={customersByPlanConfig} className="mx-auto h-[250px] w-full">
                   <PieChart accessibilityLayer>
                     <ChartTooltip
                       cursor={false}
@@ -189,7 +182,9 @@ export default function DashboardPage() {
                     <Pie
                       data={customersByPlan.map((item) => ({
                         ...item,
-                        fill: customersByPlanConfig[item.name as keyof typeof customersByPlanConfig]?.color || "var(--chart-1)",
+                        fill:
+                          customersByPlanConfig[item.name as keyof typeof customersByPlanConfig]
+                            ?.color || "var(--chart-1)",
                       }))}
                       dataKey="value"
                       nameKey="name"
@@ -206,24 +201,18 @@ export default function DashboardPage() {
                 <CardTitle className="text-headline-3">Revenue by Plan</CardTitle>
               </CardHeader>
               <CardContent>
-                <ChartContainer
-                  config={revenueByPlanConfig}
-                  className="h-[250px] w-full"
-                >
+                <ChartContainer config={revenueByPlanConfig} className="h-[250px] w-full">
                   <BarChart
                     accessibilityLayer
                     data={revenueByPlan.map((item) => ({
                       ...item,
-                      fill: revenueByPlanConfig[item.name as keyof typeof revenueByPlanConfig]?.color || "var(--chart-1)",
+                      fill:
+                        revenueByPlanConfig[item.name as keyof typeof revenueByPlanConfig]?.color ||
+                        "var(--chart-1)",
                     }))}
                   >
                     <CartesianGrid vertical={false} />
-                    <XAxis
-                      dataKey="name"
-                      tickLine={false}
-                      axisLine={false}
-                      tickMargin={10}
-                    />
+                    <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={10} />
                     <YAxis
                       tickLine={false}
                       axisLine={false}
@@ -244,24 +233,19 @@ export default function DashboardPage() {
                 <CardTitle className="text-headline-3">Device Status</CardTitle>
               </CardHeader>
               <CardContent>
-                <ChartContainer
-                  config={devicesByStatusConfig}
-                  className="h-[250px] w-full"
-                >
+                <ChartContainer config={devicesByStatusConfig} className="h-[250px] w-full">
                   <BarChart
                     accessibilityLayer
                     data={devicesByStatus.map((item) => ({
                       ...item,
-                      fill: devicesByStatusConfig[item.name as keyof typeof devicesByStatusConfig]?.color || "var(--chart-4)",
+                      fill:
+                        devicesByStatusConfig[item.name as keyof typeof devicesByStatusConfig]
+                          ?.color || "var(--chart-4)",
                     }))}
                     layout="vertical"
                   >
                     <CartesianGrid horizontal={false} />
-                    <XAxis
-                      type="number"
-                      tickLine={false}
-                      axisLine={false}
-                    />
+                    <XAxis type="number" tickLine={false} axisLine={false} />
                     <YAxis
                       dataKey="name"
                       type="category"
@@ -282,10 +266,7 @@ export default function DashboardPage() {
                 <CardTitle className="text-headline-3">Ticket Status</CardTitle>
               </CardHeader>
               <CardContent>
-                <ChartContainer
-                  config={ticketsByStatusConfig}
-                  className="mx-auto h-[250px] w-full"
-                >
+                <ChartContainer config={ticketsByStatusConfig} className="mx-auto h-[250px] w-full">
                   <PieChart accessibilityLayer>
                     <ChartTooltip
                       cursor={false}
@@ -294,7 +275,9 @@ export default function DashboardPage() {
                     <Pie
                       data={ticketsByStatus.map((item) => ({
                         ...item,
-                        fill: ticketsByStatusConfig[item.name as keyof typeof ticketsByStatusConfig]?.color || "var(--chart-4)",
+                        fill:
+                          ticketsByStatusConfig[item.name as keyof typeof ticketsByStatusConfig]
+                            ?.color || "var(--chart-4)",
                       }))}
                       dataKey="value"
                       nameKey="name"

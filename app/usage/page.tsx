@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
@@ -11,11 +11,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -31,27 +27,20 @@ import { X, Loader2 } from "lucide-react"
 import { HealthStatus } from "@/components/health-status"
 import { UsageTable } from "@/components/usage-table"
 import { useUsage, type UsageFilters } from "@/hooks/use-usage"
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll"
 
 export default function UsagePage() {
   const [filters, setFilters] = useState<UsageFilters>({})
-  const { records, loading, loadingMore, error, hasNext, totalElements, loadMore } = useUsage(filters)
+  const { records, loading, loadingMore, error, hasNext, totalElements, loadMore } =
+    useUsage(filters)
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  const handleScroll = useCallback(() => {
-    const el = scrollRef.current
-    if (!el || loadingMore || !hasNext) return
-    const { scrollTop, scrollHeight, clientHeight } = el
-    if (scrollHeight - scrollTop - clientHeight < 200) {
-      loadMore()
-    }
-  }, [loadMore, loadingMore, hasNext])
-
-  useEffect(() => {
-    const el = scrollRef.current
-    if (!el) return
-    el.addEventListener("scroll", handleScroll)
-    return () => el.removeEventListener("scroll", handleScroll)
-  }, [handleScroll])
+  useInfiniteScroll({
+    scrollRef,
+    loadMore,
+    hasNext,
+    loading: loadingMore,
+  })
 
   const clearFilters = () => setFilters({})
   const hasActiveFilters = filters.type || filters.customerId || filters.dateFrom || filters.dateTo
@@ -61,7 +50,7 @@ export default function UsagePage() {
       <AppSidebar />
       <SidebarInset className="overflow-hidden">
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4 flex-1">
+          <div className="flex flex-1 items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
             <Breadcrumb>
@@ -80,13 +69,15 @@ export default function UsagePage() {
             </div>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-hidden">
-          <Card className="flex flex-col flex-1 overflow-hidden">
+        <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4 pt-0">
+          <Card className="flex flex-1 flex-col overflow-hidden">
             <CardHeader className="shrink-0 space-y-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-headline-2">Usage Records</CardTitle>
-                <span className="text-sm text-muted-foreground">
-                  {loading ? "Loading..." : `${(records?.length ?? 0).toLocaleString()} of ${(totalElements ?? 0).toLocaleString()} records`}
+                <span className="text-muted-foreground text-sm">
+                  {loading
+                    ? "Loading..."
+                    : `${(records?.length ?? 0).toLocaleString()} of ${(totalElements ?? 0).toLocaleString()} records`}
                 </span>
               </div>
               <div className="flex flex-wrap items-end gap-4">
@@ -94,7 +85,12 @@ export default function UsagePage() {
                   <Label htmlFor="type-filter">Type</Label>
                   <Select
                     value={filters.type || "all"}
-                    onValueChange={(v: string) => setFilters(f => ({ ...f, type: v === "all" ? null : v as UsageFilters["type"] }))}
+                    onValueChange={(v: string) =>
+                      setFilters((f) => ({
+                        ...f,
+                        type: v === "all" ? null : (v as UsageFilters["type"]),
+                      }))
+                    }
                   >
                     <SelectTrigger id="type-filter" className="w-[120px]">
                       <SelectValue />
@@ -115,7 +111,12 @@ export default function UsagePage() {
                     placeholder="Any"
                     className="w-[100px]"
                     value={filters.customerId || ""}
-                    onChange={(e) => setFilters(f => ({ ...f, customerId: e.target.value ? Number(e.target.value) : null }))}
+                    onChange={(e) =>
+                      setFilters((f) => ({
+                        ...f,
+                        customerId: e.target.value ? Number(e.target.value) : null,
+                      }))
+                    }
                   />
                 </div>
                 <div className="space-y-1">
@@ -125,7 +126,9 @@ export default function UsagePage() {
                     type="date"
                     className="w-[150px]"
                     value={filters.dateFrom || ""}
-                    onChange={(e) => setFilters(f => ({ ...f, dateFrom: e.target.value || null }))}
+                    onChange={(e) =>
+                      setFilters((f) => ({ ...f, dateFrom: e.target.value || null }))
+                    }
                   />
                 </div>
                 <div className="space-y-1">
@@ -135,12 +138,12 @@ export default function UsagePage() {
                     type="date"
                     className="w-[150px]"
                     value={filters.dateTo || ""}
-                    onChange={(e) => setFilters(f => ({ ...f, dateTo: e.target.value || null }))}
+                    onChange={(e) => setFilters((f) => ({ ...f, dateTo: e.target.value || null }))}
                   />
                 </div>
                 {hasActiveFilters && (
                   <Button variant="ghost" size="sm" onClick={clearFilters}>
-                    <X className="h-4 w-4 mr-1" />
+                    <X className="mr-1 h-4 w-4" />
                     Clear
                   </Button>
                 )}
@@ -148,23 +151,23 @@ export default function UsagePage() {
             </CardHeader>
             <CardContent className="flex-1 overflow-hidden">
               {loading ? (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
-                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                <div className="text-muted-foreground flex h-full items-center justify-center">
+                  <Loader2 className="mr-2 h-6 w-6 animate-spin" />
                   Loading...
                 </div>
               ) : error ? (
-                <div className="text-center py-8 text-red-500">{error}</div>
+                <div className="py-8 text-center text-red-500">{error}</div>
               ) : (
                 <div ref={scrollRef} className="h-full overflow-auto">
                   <UsageTable records={records} />
                   {loadingMore && (
-                    <div className="flex items-center justify-center py-4 text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    <div className="text-muted-foreground flex items-center justify-center py-4">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Loading more...
                     </div>
                   )}
                   {!hasNext && records.length > 0 && (
-                    <div className="text-center py-4 text-muted-foreground text-sm">
+                    <div className="text-muted-foreground py-4 text-center text-sm">
                       End of results
                     </div>
                   )}

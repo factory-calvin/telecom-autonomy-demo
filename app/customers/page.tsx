@@ -11,11 +11,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -32,11 +28,17 @@ import { Plus } from "lucide-react"
 import { HealthStatus } from "@/components/health-status"
 import { CustomersTable } from "@/components/customers-table"
 import { CustomerFormDialog } from "@/components/customer-form-dialog"
-import { useCustomers, type Customer, type CustomerCreate, type CustomerUpdate } from "@/hooks/use-customers"
+import {
+  useCustomers,
+  type Customer,
+  type CustomerCreate,
+  type CustomerUpdate,
+} from "@/hooks/use-customers"
 import { usePlans } from "@/hooks/use-plans"
 
 export default function CustomersPage() {
-  const { customers, loading, error, createCustomer, updateCustomer, deleteCustomer } = useCustomers()
+  const { customers, loading, error, createCustomer, updateCustomer, deleteCustomer } =
+    useCustomers()
   const { plans } = usePlans()
 
   const [formOpen, setFormOpen] = useState(false)
@@ -80,7 +82,7 @@ export default function CustomersPage() {
       <AppSidebar />
       <SidebarInset className="overflow-hidden">
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4 flex-1">
+          <div className="flex flex-1 items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
             <Breadcrumb>
@@ -99,23 +101,27 @@ export default function CustomersPage() {
             </div>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-hidden">
-          <Card className="flex flex-col flex-1 overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 shrink-0">
+        <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4 pt-0">
+          <Card className="flex flex-1 flex-col overflow-hidden">
+            <CardHeader className="flex shrink-0 flex-row items-center justify-between space-y-0 pb-4">
               <CardTitle className="text-headline-2">Customers</CardTitle>
               <Button onClick={handleAdd}>
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 Add Customer
               </Button>
             </CardHeader>
             <CardContent className="flex-1 overflow-hidden">
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                <div className="text-muted-foreground py-8 text-center">Loading...</div>
               ) : error ? (
-                <div className="text-center py-8 text-red-500">{error}</div>
+                <div className="py-8 text-center text-red-500">{error}</div>
               ) : (
                 <div className="h-full overflow-auto">
-                  <CustomersTable customers={customers} onEdit={handleEdit} onDelete={handleDeleteClick} />
+                  <CustomersTable
+                    customers={customers}
+                    onEdit={handleEdit}
+                    onDelete={handleDeleteClick}
+                  />
                 </div>
               )}
             </CardContent>
@@ -135,8 +141,8 @@ export default function CustomersPage() {
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Customer</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete {customerToDelete?.first_name} {customerToDelete?.last_name}?
-                This action cannot be undone.
+                Are you sure you want to delete {customerToDelete?.first_name}{" "}
+                {customerToDelete?.last_name}? This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

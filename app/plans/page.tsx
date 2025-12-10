@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
@@ -10,28 +11,61 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Plus } from "lucide-react"
 import { HealthStatus } from "@/components/health-status"
 import { PlansTable } from "@/components/plans-table"
-import { usePlans, type Plan } from "@/hooks/use-plans"
+import { PlanFormDialog } from "@/components/plan-form-dialog"
+import { usePlans, type Plan, type PlanCreate, type PlanUpdate } from "@/hooks/use-plans"
 
 export default function PlansPage() {
-  const { plans, loading, error, deletePlan } = usePlans()
+  const { plans, loading, error, createPlan, updatePlan, deletePlan } = usePlans()
 
-  const handleEdit = (plan: Plan) => {
-    alert(`Edit plan: ${plan.name}`)
+  const [formOpen, setFormOpen] = useState(false)
+  const [editingPlan, setEditingPlan] = useState<Plan | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [planToDelete, setPlanToDelete] = useState<Plan | null>(null)
+
+  const handleAdd = () => {
+    setEditingPlan(null)
+    setFormOpen(true)
   }
 
-  const handleDelete = async (plan: Plan) => {
-    if (confirm(`Delete "${plan.name}"?`)) {
-      await deletePlan(plan.id)
+  const handleEdit = (plan: Plan) => {
+    setEditingPlan(plan)
+    setFormOpen(true)
+  }
+
+  const handleDeleteClick = (plan: Plan) => {
+    setPlanToDelete(plan)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (planToDelete) {
+      await deletePlan(planToDelete.id)
+      setDeleteDialogOpen(false)
+      setPlanToDelete(null)
+    }
+  }
+
+  const handleFormSubmit = async (data: PlanCreate | PlanUpdate) => {
+    if (editingPlan) {
+      await updatePlan(editingPlan.id, data as PlanUpdate)
+    } else {
+      await createPlan(data as PlanCreate)
     }
   }
 
@@ -40,7 +74,7 @@ export default function PlansPage() {
       <AppSidebar />
       <SidebarInset className="overflow-hidden">
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4 flex-1">
+          <div className="flex flex-1 items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
             <Breadcrumb>
@@ -59,28 +93,51 @@ export default function PlansPage() {
             </div>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-hidden">
-          <Card className="flex flex-col flex-1 overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 shrink-0">
+        <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4 pt-0">
+          <Card className="flex flex-1 flex-col overflow-hidden">
+            <CardHeader className="flex shrink-0 flex-row items-center justify-between space-y-0 pb-4">
               <CardTitle className="text-headline-2">Service Plans</CardTitle>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
+              <Button onClick={handleAdd}>
+                <Plus className="mr-2 h-4 w-4" />
                 Add Plan
               </Button>
             </CardHeader>
             <CardContent className="flex-1 overflow-hidden">
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                <div className="text-muted-foreground py-8 text-center">Loading...</div>
               ) : error ? (
-                <div className="text-center py-8 text-red-500">{error}</div>
+                <div className="py-8 text-center text-red-500">{error}</div>
               ) : (
                 <div className="h-full overflow-auto">
-                  <PlansTable plans={plans} onEdit={handleEdit} onDelete={handleDelete} />
+                  <PlansTable plans={plans} onEdit={handleEdit} onDelete={handleDeleteClick} />
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
+
+        <PlanFormDialog
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          plan={editingPlan}
+          onSubmit={handleFormSubmit}
+        />
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Plan</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete &quot;{planToDelete?.name}&quot;? This action cannot
+                be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteConfirm}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </SidebarInset>
     </SidebarProvider>
   )
