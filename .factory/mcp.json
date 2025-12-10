@@ -9,10 +9,6 @@
       "type": "stdio",
       "command": "npx",
       "args": ["shadcn@latest", "mcp"]
-    },
-    "demo-api": {
-      "type": "http",
-      "url": "http://localhost:8000/mcp"
     }
   }
 }
