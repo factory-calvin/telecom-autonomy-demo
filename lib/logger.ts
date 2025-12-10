@@ -1,37 +1,48 @@
-import pino from "pino"
-
-const isServer = typeof window === "undefined"
 const isDev = process.env.NODE_ENV === "development"
 
-const browserLogger = {
-  level: isDev ? "debug" : "info",
-  browser: {
-    asObject: true,
-    write: {
-      debug: (o: object) => console.debug("[DEBUG]", o),
-      info: (o: object) => console.info("[INFO]", o),
-      warn: (o: object) => console.warn("[WARN]", o),
-      error: (o: object) => console.error("[ERROR]", o),
-    },
-  },
+type LogLevel = "debug" | "info" | "warn" | "error"
+
+interface Logger {
+  debug: (obj: object, msg?: string) => void
+  info: (obj: object, msg?: string) => void
+  warn: (obj: object, msg?: string) => void
+  error: (obj: object, msg?: string) => void
+  child: (bindings: object) => Logger
 }
 
-const serverLogger = {
-  level: isDev ? "debug" : "info",
-  transport: isDev
-    ? {
-        target: "pino-pretty",
-        options: {
-          colorize: true,
-          translateTime: "SYS:standard",
-          ignore: "pid,hostname",
-        },
-      }
-    : undefined,
+function createBrowserLogger(context?: string): Logger {
+  const prefix = context ? `[${context}]` : ""
+
+  const log = (level: LogLevel, obj: object, msg?: string) => {
+    const output = msg ? { ...obj, msg } : obj
+    const prefixedMsg = prefix ? `${prefix} ${msg || ""}` : msg
+    switch (level) {
+      case "debug":
+        if (isDev) console.debug(prefixedMsg, output)
+        break
+      case "info":
+        console.info(prefixedMsg, output)
+        break
+      case "warn":
+        console.warn(prefixedMsg, output)
+        break
+      case "error":
+        console.error(prefixedMsg, output)
+        break
+    }
+  }
+
+  return {
+    debug: (obj: object, msg?: string) => log("debug", obj, msg),
+    info: (obj: object, msg?: string) => log("info", obj, msg),
+    warn: (obj: object, msg?: string) => log("warn", obj, msg),
+    error: (obj: object, msg?: string) => log("error", obj, msg),
+    child: (bindings: object) => createBrowserLogger((bindings as { context?: string }).context),
+  }
 }
 
-export const logger = pino(isServer ? serverLogger : browserLogger)
+export const logger: Logger = createBrowserLogger()
 
-export function createLogger(context: string) {
+export function createLogger(context: string): Logger {
   return logger.child({ context })
 }
