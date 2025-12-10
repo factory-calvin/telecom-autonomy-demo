@@ -1,6 +1,15 @@
-# Demo Template
+# FactoryFone Admin Portal
 
-A full-stack application with a Next.js frontend and FastAPI backend.
+A telecom user administration system built with Next.js and Spring Boot.
+
+## Features
+
+- **Dashboard** - KPI cards and charts showing business metrics
+- **Customer Management** - CRUD operations for subscriber accounts
+- **Plan Management** - Service plan catalog (Basic, Standard, Premium, Unlimited, Family)
+- **Device Inventory** - Track devices and SIM cards with assignment status
+- **Usage Records** - View call, data, and SMS usage history
+- **Support Tickets** - Customer service ticket management
 
 ## Tech Stack
 
@@ -9,40 +18,53 @@ A full-stack application with a Next.js frontend and FastAPI backend.
 - React 19
 - Tailwind CSS 4
 - shadcn/ui components
+- Recharts (via shadcn/ui)
 - TypeScript
 
 **Backend:**
-- FastAPI
-- SQLAlchemy (SQLite)
-- Pydantic
+- Spring Boot 4.0
+- Java 25
+- Gradle
+- SQLite (auto-seeded with demo data)
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 18+
-- Python 3.9+
+- Java 25+
 - pnpm
 
 ### Setup
 
 ```bash
-# Install all dependencies (frontend + backend)
-pnpm setup
+pnpm setup    # Install deps + seed database with production-like data
 ```
 
-Or manually:
+Or install without seeding:
 
 ```bash
-# Frontend
 pnpm install
-
-# Backend
-cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
 ```
+
+### Database Seeding
+
+The Python seeder (`scripts/seed-database.py`) generates production-like data:
+
+| Entity | Count |
+|--------|-------|
+| Plans | 8 |
+| Customers | 500 |
+| Devices | 600 |
+| Usage Records | ~220,000 |
+| Support Tickets | 250 |
+
+```bash
+pnpm setup:db   # Run seeder
+pnpm reset:db   # Delete DB + re-seed
+```
+
+Requires Python 3 with faker: `pip install -r scripts/requirements.txt`
 
 ### Development
 
@@ -52,29 +74,22 @@ Run both frontend and backend:
 pnpm dev
 ```
 
+- Frontend: http://localhost:3000
+- Backend: http://localhost:8080
+
 Or run separately:
 
 ```bash
-# Frontend (http://localhost:3000)
-pnpm dev:frontend
-
-# Backend (http://localhost:8000)
-cd backend
-source venv/bin/activate
-uvicorn main:app --reload
+pnpm dev:frontend   # Frontend only
+pnpm dev:backend    # Backend only
 ```
 
 ### Testing
 
 ```bash
-# Run all tests
-pnpm test
-
-# Frontend only
-pnpm test:frontend
-
-# Backend only
-pnpm test:backend
+pnpm test           # All tests
+pnpm test:frontend  # Vitest
+pnpm test:backend   # Gradle test
 ```
 
 ### Linting
@@ -83,31 +98,50 @@ pnpm test:backend
 pnpm lint
 ```
 
+## Application Pages
+
+| Page | URL | Description |
+|------|-----|-------------|
+| Dashboard | `/dashboard` | KPIs and charts |
+| Customers | `/customers` | Subscriber management |
+| Plans | `/plans` | Service plan catalog |
+| Devices | `/devices` | Device/SIM inventory |
+| Usage | `/usage` | Usage records |
+| Tickets | `/tickets` | Support tickets |
+
+## API Endpoints
+
+| Endpoint | Methods | Description |
+|----------|---------|-------------|
+| `/api/health` | GET | Health check |
+| `/api/customers` | GET, POST, PUT, DELETE | Customer CRUD |
+| `/api/plans` | GET, POST, PUT, DELETE | Plan CRUD |
+| `/api/devices` | GET, POST, PUT, DELETE | Device CRUD |
+| `/api/usage` | GET | Usage records |
+| `/api/tickets` | GET, POST, PUT, DELETE | Ticket CRUD |
+| `/api/dashboard/*` | GET | Dashboard statistics |
+
 ## Project Structure
 
 ```
-├── app/                    # Next.js pages and layouts
-│   ├── dashboard/          # Dashboard pages
-│   │   └── items/          # Items CRUD page
-│   └── page.tsx            # Landing page
-├── backend/                # FastAPI backend
-│   ├── main.py             # API routes
-│   ├── models.py           # SQLAlchemy models
-│   ├── schemas.py          # Pydantic schemas
-│   └── database.py         # Database config
+├── app/                    # Next.js pages
+│   ├── dashboard/          # Dashboard with KPIs/charts
+│   ├── customers/          # Customer management
+│   ├── plans/              # Plan management
+│   ├── devices/            # Device inventory
+│   ├── usage/              # Usage records
+│   └── tickets/            # Support tickets
+├── backend/                # Spring Boot backend
+│   └── src/main/java/com/example/demo/
+│       ├── model/          # JPA entities
+│       ├── repository/     # Spring Data repos
+│       ├── controller/     # REST controllers
+│       └── DataSeeder.java # Fallback seeder
+├── scripts/                # Utility scripts
+│   ├── seed-database.py    # Production-like data seeder
+│   └── requirements.txt    # Python dependencies
 ├── components/             # React components
 │   └── ui/                 # shadcn/ui components
 ├── hooks/                  # Custom React hooks
 └── lib/                    # Utilities
 ```
-
-## API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/health` | Health check |
-| GET | `/api/items` | List all items |
-| POST | `/api/items` | Create item |
-| GET | `/api/items/{id}` | Get item |
-| PUT | `/api/items/{id}` | Update item |
-| DELETE | `/api/items/{id}` | Delete item |
