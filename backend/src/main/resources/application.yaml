@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: demo
+  datasource:
+    url: jdbc:sqlite:app.db
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
