@@ -4,6 +4,8 @@ import com.example.demo.model.Customer;
 import com.example.demo.model.Device;
 import com.example.demo.model.SupportTicket;
 import com.example.demo.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -14,6 +16,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/dashboard")
 public class DashboardController {
+
+    private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
 
     private final CustomerRepository customerRepository;
     private final PlanRepository planRepository;
@@ -30,6 +34,7 @@ public class DashboardController {
 
     @GetMapping("/stats")
     public DashboardStats getStats() {
+        log.info("Fetching dashboard stats");
         long activeCustomers = customerRepository.countByStatus(Customer.Status.ACTIVE);
 
         BigDecimal monthlyRevenue = customerRepository.findByStatus(Customer.Status.ACTIVE).stream()
@@ -41,38 +46,53 @@ public class DashboardController {
 
         long devicesInUse = deviceRepository.countByStatus(Device.Status.ASSIGNED);
 
+        log.debug("Dashboard stats: activeCustomers={}, monthlyRevenue={}, openTickets={}, devicesInUse={}",
+                activeCustomers, monthlyRevenue, openTickets, devicesInUse);
         return new DashboardStats(activeCustomers, monthlyRevenue, openTickets, devicesInUse);
     }
 
     @GetMapping("/customers-by-plan")
     public List<ChartData> getCustomersByPlan() {
-        return customerRepository.countByPlanName().stream()
+        log.info("Fetching customers by plan chart data");
+        List<ChartData> data = customerRepository.countByPlanName().stream()
                 .map(row -> new ChartData((String) row[0], ((Number) row[1]).longValue())).toList();
+        log.debug("Found {} plan categories", data.size());
+        return data;
     }
 
     @GetMapping("/devices-by-status")
     public List<ChartData> getDevicesByStatus() {
-        return deviceRepository.countByStatus().stream()
+        log.info("Fetching devices by status chart data");
+        List<ChartData> data = deviceRepository.countByStatus().stream()
                 .map(row -> new ChartData(((Device.Status) row[0]).name(), ((Number) row[1]).longValue())).toList();
+        log.debug("Found {} device status categories", data.size());
+        return data;
     }
 
     @GetMapping("/tickets-by-status")
     public List<ChartData> getTicketsByStatus() {
-        return ticketRepository.countByStatus().stream()
+        log.info("Fetching tickets by status chart data");
+        List<ChartData> data = ticketRepository.countByStatus().stream()
                 .map(row -> new ChartData(((SupportTicket.Status) row[0]).name(), ((Number) row[1]).longValue()))
                 .toList();
+        log.debug("Found {} ticket status categories", data.size());
+        return data;
     }
 
     @GetMapping("/revenue-by-plan")
     public List<RevenueData> getRevenueByPlan() {
+        log.info("Fetching revenue by plan chart data");
         Map<String, Long> customerCounts = customerRepository.findByStatus(Customer.Status.ACTIVE).stream()
                 .filter(c -> c.getPlan() != null)
                 .collect(Collectors.groupingBy(c -> c.getPlan().getName(), Collectors.counting()));
 
-        return planRepository.findAll().stream().filter(plan -> customerCounts.containsKey(plan.getName()))
+        List<RevenueData> data = planRepository.findAll().stream()
+                .filter(plan -> customerCounts.containsKey(plan.getName()))
                 .map(plan -> new RevenueData(plan.getName(),
                         plan.getMonthlyPrice().multiply(BigDecimal.valueOf(customerCounts.get(plan.getName())))))
                 .toList();
+        log.debug("Found {} plans with revenue data", data.size());
+        return data;
     }
 
     public record DashboardStats(long active_customers, BigDecimal monthly_revenue, long open_tickets,

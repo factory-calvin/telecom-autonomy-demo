@@ -2,6 +2,8 @@ package com.example.demo.controller;
 
 import com.example.demo.model.UsageRecord;
 import com.example.demo.repository.UsageRecordRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,8 @@ import java.util.List;
 @RequestMapping("/api/usage")
 public class UsageRecordController {
 
+    private static final Logger log = LoggerFactory.getLogger(UsageRecordController.class);
+
     private final UsageRecordRepository repository;
 
     public UsageRecordController(UsageRecordRepository repository) {
@@ -27,6 +31,8 @@ public class UsageRecordController {
             @RequestParam(defaultValue = "50") int size, @RequestParam(required = false) String type,
             @RequestParam(required = false) Long customerId, @RequestParam(required = false) String dateFrom,
             @RequestParam(required = false) String dateTo) {
+        log.info("Fetching usage records: page={}, size={}, type={}, customerId={}, dateFrom={}, dateTo={}", page, size,
+                type, customerId, dateFrom, dateTo);
         UsageRecord.Type typeEnum = (type != null && !type.isEmpty()) ? UsageRecord.Type.valueOf(type) : null;
         Instant from = (dateFrom != null && !dateFrom.isEmpty())
                 ? LocalDate.parse(dateFrom).atStartOfDay().toInstant(ZoneOffset.UTC)
@@ -45,13 +51,19 @@ public class UsageRecordController {
             result = repository.findAllByOrderByRecordedAtDesc(pageRequest);
         }
 
+        log.debug("Found {} usage records (page {} of {})", result.getNumberOfElements(), result.getNumber(),
+                result.getTotalPages());
         return new PagedResponse(result.getContent().stream().map(UsageRecordResponse::from).toList(),
                 result.getNumber(), result.getTotalPages(), result.getTotalElements(), result.hasNext());
     }
 
     @GetMapping("/customer/{customerId}")
     public List<UsageRecordResponse> getByCustomer(@PathVariable Long customerId) {
-        return repository.findByCustomerId(customerId).stream().map(UsageRecordResponse::from).toList();
+        log.info("Fetching usage records for customer: customerId={}", customerId);
+        List<UsageRecordResponse> records = repository.findByCustomerId(customerId).stream()
+                .map(UsageRecordResponse::from).toList();
+        log.debug("Found {} usage records for customer {}", records.size(), customerId);
+        return records;
     }
 
     public record PagedResponse(List<UsageRecordResponse> content, int page, int totalPages, long totalElements,

@@ -2,6 +2,8 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Plan;
 import com.example.demo.repository.PlanRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +14,8 @@ import java.util.List;
 @RequestMapping("/api/plans")
 public class PlanController {
 
+    private static final Logger log = LoggerFactory.getLogger(PlanController.class);
+
     private final PlanRepository repository;
 
     public PlanController(PlanRepository repository) {
@@ -20,29 +24,45 @@ public class PlanController {
 
     @GetMapping
     public List<PlanResponse> getAllPlans() {
-        return repository.findAll().stream().map(PlanResponse::from).toList();
+        log.info("Fetching all plans");
+        List<PlanResponse> plans = repository.findAll().stream().map(PlanResponse::from).toList();
+        log.debug("Found {} plans", plans.size());
+        return plans;
     }
 
     @GetMapping("/active")
     public List<PlanResponse> getActivePlans() {
-        return repository.findByIsActiveTrue().stream().map(PlanResponse::from).toList();
+        log.info("Fetching active plans");
+        List<PlanResponse> plans = repository.findByIsActiveTrue().stream().map(PlanResponse::from).toList();
+        log.debug("Found {} active plans", plans.size());
+        return plans;
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PlanResponse> getPlan(@PathVariable Long id) {
-        return repository.findById(id).map(plan -> ResponseEntity.ok(PlanResponse.from(plan)))
-                .orElse(ResponseEntity.notFound().build());
+        log.info("Fetching plan with id={}", id);
+        return repository.findById(id).map(plan -> {
+            log.debug("Found plan: {}", plan.getName());
+            return ResponseEntity.ok(PlanResponse.from(plan));
+        }).orElseGet(() -> {
+            log.warn("Plan not found: id={}", id);
+            return ResponseEntity.notFound().build();
+        });
     }
 
     @PostMapping
     public PlanResponse createPlan(@RequestBody PlanRequest request) {
+        log.info("Creating plan: name={}", request.name());
         Plan plan = new Plan(request.name(), request.monthlyPrice(), request.dataLimitGb(), request.minutesLimit(),
                 request.smsLimit());
-        return PlanResponse.from(repository.save(plan));
+        Plan saved = repository.save(plan);
+        log.info("Plan created: id={}, name={}", saved.getId(), saved.getName());
+        return PlanResponse.from(saved);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<PlanResponse> updatePlan(@PathVariable Long id, @RequestBody PlanRequest request) {
+        log.info("Updating plan: id={}", id);
         return repository.findById(id).map(plan -> {
             plan.setName(request.name());
             plan.setMonthlyPrice(request.monthlyPrice());
@@ -52,16 +72,24 @@ public class PlanController {
             if (request.isActive() != null) {
                 plan.setIsActive(request.isActive());
             }
-            return ResponseEntity.ok(PlanResponse.from(repository.save(plan)));
-        }).orElse(ResponseEntity.notFound().build());
+            Plan saved = repository.save(plan);
+            log.info("Plan updated: id={}, name={}", saved.getId(), saved.getName());
+            return ResponseEntity.ok(PlanResponse.from(saved));
+        }).orElseGet(() -> {
+            log.warn("Plan not found for update: id={}", id);
+            return ResponseEntity.notFound().build();
+        });
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePlan(@PathVariable Long id) {
+        log.info("Deleting plan: id={}", id);
         if (!repository.existsById(id)) {
+            log.warn("Plan not found for deletion: id={}", id);
             return ResponseEntity.notFound().build();
         }
         repository.deleteById(id);
+        log.info("Plan deleted: id={}", id);
         return ResponseEntity.noContent().build();
     }
 
