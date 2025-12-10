@@ -8,17 +8,18 @@ The project uses **Tele Neo Office** as the primary font family, loaded via `nex
 
 ### Available Weights
 
-| Weight Name | CSS Variable | CSS Value | Tailwind Class |
-|-------------|--------------|-----------|----------------|
-| Extra Bold | `--telekom-font-weight-extra-bold` | 800 | `font-extrabold` |
-| Bold | `--telekom-font-weight-bold` | 700 | `font-bold` |
-| Medium | `--telekom-font-weight-medium` | 500 | `font-medium` |
-| Regular | `--telekom-font-weight-regular` | 400 | `font-normal` |
-| Thin | `--telekom-font-weight-thin` | 200 | `font-thin` |
+| Weight Name | CSS Variable                       | CSS Value | Tailwind Class   |
+| ----------- | ---------------------------------- | --------- | ---------------- |
+| Extra Bold  | `--telekom-font-weight-extra-bold` | 800       | `font-extrabold` |
+| Bold        | `--telekom-font-weight-bold`       | 700       | `font-bold`      |
+| Medium      | `--telekom-font-weight-medium`     | 500       | `font-medium`    |
+| Regular     | `--telekom-font-weight-regular`    | 400       | `font-normal`    |
+| Thin        | `--telekom-font-weight-thin`       | 200       | `font-thin`      |
 
 ### Font Files Location
 
 Font files are located in `app/fonts/`:
+
 - `Tele Neo Office.ttf` (Regular - 400)
 - `Tele Neo Office Thin.ttf` (200)
 - `Tele Neo Office Medium.ttf` (500)
@@ -29,16 +30,16 @@ Font files are located in `app/fonts/`:
 
 Custom typography utility classes are defined in `globals.css`:
 
-| Class | Use Case | Font Weight | Size |
-|-------|----------|-------------|------|
-| `.text-headline-1` | Page titles | Bold (700) | 2rem |
-| `.text-headline-2` | Section/Card titles | Bold (700) | 1.5rem |
-| `.text-headline-3` | Subsection titles | Medium (500) | 1.25rem |
-| `.text-lead` | Intro/lead text | Regular (400) | 1.125rem |
-| `.text-body` | Body text | Regular (400) | 1rem |
-| `.text-body-small` | Secondary body | Regular (400) | 0.875rem |
-| `.text-ui` | UI labels, buttons | Medium (500) | 0.875rem |
-| `.text-caption` | Captions, hints | Regular (400) | 0.75rem |
+| Class              | Use Case            | Font Weight   | Size     |
+| ------------------ | ------------------- | ------------- | -------- |
+| `.text-headline-1` | Page titles         | Bold (700)    | 2rem     |
+| `.text-headline-2` | Section/Card titles | Bold (700)    | 1.5rem   |
+| `.text-headline-3` | Subsection titles   | Medium (500)  | 1.25rem  |
+| `.text-lead`       | Intro/lead text     | Regular (400) | 1.125rem |
+| `.text-body`       | Body text           | Regular (400) | 1rem     |
+| `.text-body-small` | Secondary body      | Regular (400) | 0.875rem |
+| `.text-ui`         | UI labels, buttons  | Medium (500)  | 0.875rem |
+| `.text-caption`    | Captions, hints     | Regular (400) | 0.75rem  |
 
 ### Usage Example
 
@@ -57,71 +58,71 @@ Custom typography utility classes are defined in `globals.css`:
 
 ### Telekom Core Colors
 
-| Name | Light Mode | Dark Mode |
-|------|------------|-----------|
-| Magenta (Primary) | `#e20074` | `#e20074` |
-| Magenta Hover | `#c00063` | `#c00063` |
-| Magenta Pressed | `#9e0051` | `#9e0051` |
+| Name              | Light Mode | Dark Mode |
+| ----------------- | ---------- | --------- |
+| Magenta (Primary) | `#e20074`  | `#e20074` |
+| Magenta Hover     | `#c00063`  | `#c00063` |
+| Magenta Pressed   | `#9e0051`  | `#9e0051` |
 
 ### Semantic Colors (Light Mode)
 
-| Token | Value | Use Case |
-|-------|-------|----------|
-| `--background` | `#ffffff` | Page background |
-| `--foreground` | `#000000` | Default text |
-| `--card` | `#ffffff` | Card backgrounds |
-| `--muted` | `#f7f7f8` | Subtle backgrounds |
-| `--muted-foreground` | `rgba(0,0,0,0.65)` | Secondary text |
-| `--primary` | `#e20074` | Primary actions |
-| `--destructive` | `#e82010` | Danger/delete |
-| `--success` | `#00b367` | Success states |
-| `--warning` | `#f97012` | Warning states |
-| `--info` | `#2238df` | Informational |
-| `--border` | `rgba(0,0,0,0.14)` | Borders |
-| `--ring` | `#2238df` | Focus rings |
+| Token                | Value              | Use Case           |
+| -------------------- | ------------------ | ------------------ |
+| `--background`       | `#ffffff`          | Page background    |
+| `--foreground`       | `#000000`          | Default text       |
+| `--card`             | `#ffffff`          | Card backgrounds   |
+| `--muted`            | `#f7f7f8`          | Subtle backgrounds |
+| `--muted-foreground` | `rgba(0,0,0,0.65)` | Secondary text     |
+| `--primary`          | `#e20074`          | Primary actions    |
+| `--destructive`      | `#e82010`          | Danger/delete      |
+| `--success`          | `#00b367`          | Success states     |
+| `--warning`          | `#f97012`          | Warning states     |
+| `--info`             | `#2238df`          | Informational      |
+| `--border`           | `rgba(0,0,0,0.14)` | Borders            |
+| `--ring`             | `#2238df`          | Focus rings        |
 
 ### Semantic Colors (Dark Mode)
 
-| Token | Value | Use Case |
-|-------|-------|----------|
-| `--background` | `#0d0d0d` | Page background |
-| `--foreground` | `#ffffff` | Default text |
-| `--card` | `#141414` | Card backgrounds |
-| `--muted` | `#1a1a1a` | Subtle backgrounds |
-| `--muted-foreground` | `rgba(255,255,255,0.65)` | Secondary text |
-| `--primary` | `#e20074` | Primary actions |
-| `--destructive` | `#ff5c5c` | Danger/delete |
-| `--success` | `#00b36b` | Success states |
-| `--warning` | `#ff8c42` | Warning states |
-| `--info` | `#6b7eff` | Informational |
-| `--border` | `rgba(255,255,255,0.14)` | Borders |
-| `--ring` | `#6b7eff` | Focus rings |
+| Token                | Value                    | Use Case           |
+| -------------------- | ------------------------ | ------------------ |
+| `--background`       | `#0d0d0d`                | Page background    |
+| `--foreground`       | `#ffffff`                | Default text       |
+| `--card`             | `#141414`                | Card backgrounds   |
+| `--muted`            | `#1a1a1a`                | Subtle backgrounds |
+| `--muted-foreground` | `rgba(255,255,255,0.65)` | Secondary text     |
+| `--primary`          | `#e20074`                | Primary actions    |
+| `--destructive`      | `#ff5c5c`                | Danger/delete      |
+| `--success`          | `#00b36b`                | Success states     |
+| `--warning`          | `#ff8c42`                | Warning states     |
+| `--info`             | `#6b7eff`                | Informational      |
+| `--border`           | `rgba(255,255,255,0.14)` | Borders            |
+| `--ring`             | `#6b7eff`                | Focus rings        |
 
 ### Chart Colors (Telekom Additional Palette)
 
-| Token | Value | Color Name |
-|-------|-------|------------|
-| `--chart-1` | `#00a0de` | Cyan |
-| `--chart-2` | `#e20074` | Magenta |
-| `--chart-3` | `#00b367` | Green |
-| `--chart-4` | `#794ae9` | Violet |
-| `--chart-5` | `#f97012` | Orange |
+| Token       | Value     | Color Name |
+| ----------- | --------- | ---------- |
+| `--chart-1` | `#00a0de` | Cyan       |
+| `--chart-2` | `#e20074` | Magenta    |
+| `--chart-3` | `#00b367` | Green      |
+| `--chart-4` | `#794ae9` | Violet     |
+| `--chart-5` | `#f97012` | Orange     |
 
 ## Text Color Utilities
 
 Custom text color classes using Telekom tokens:
 
-| Class | Purpose |
-|-------|---------|
-| `.text-telekom-standard` | Standard text color |
+| Class                      | Purpose                      |
+| -------------------------- | ---------------------------- |
+| `.text-telekom-standard`   | Standard text color          |
 | `.text-telekom-additional` | Secondary text (65% opacity) |
-| `.text-telekom-disabled` | Disabled text (40% opacity) |
-| `.text-telekom-link` | Link color |
-| `.text-telekom-success` | Success text |
-| `.text-telekom-danger` | Error/danger text |
-| `.text-telekom-warning` | Warning text |
-| `.text-telekom-info` | Informational text |
-| `.text-telekom-magenta` | Brand magenta |
+| `.text-telekom-disabled`   | Disabled text (40% opacity)  |
+| `.text-telekom-link`       | Link color                   |
+| `.text-telekom-success`    | Success text                 |
+| `.text-telekom-danger`     | Error/danger text            |
+| `.text-telekom-warning`    | Warning text                 |
+| `.text-telekom-info`       | Informational text           |
+| `.text-telekom-magenta`    | Brand magenta                |
 
 ### Usage Example
 

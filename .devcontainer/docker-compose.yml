@@ -1,0 +1,20 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspaces/app:cached
+      - gradle_cache:/home/vscode/.gradle
+      - pnpm_store:/home/vscode/.local/share/pnpm
+    ports:
+      - "3000:3000"
+      - "8080:8080"
+    environment:
+      - NODE_ENV=development
+    command: sleep infinity
+    user: vscode
+
+volumes:
+  gradle_cache:
+  pnpm_store:
