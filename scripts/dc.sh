@@ -44,6 +44,14 @@ case "${1:-}" in
     echo "Starting development servers in container..."
     docker compose -f "$COMPOSE_FILE" exec $SERVICE bash -c "cd /workspaces/app && pnpm dev"
     ;;
+  dev:all)
+    echo "Starting all development servers (frontend + backend + docs) in container..."
+    docker compose -f "$COMPOSE_FILE" exec $SERVICE bash -c "cd /workspaces/app && pnpm dev:all"
+    ;;
+  dev:docs)
+    echo "Starting docs dev server in container..."
+    docker compose -f "$COMPOSE_FILE" exec $SERVICE bash -c "cd /workspaces/app && pnpm dev:docs"
+    ;;
   dev:frontend)
     echo "Starting frontend dev server in container..."
     docker compose -f "$COMPOSE_FILE" exec $SERVICE bash -c "cd /workspaces/app && pnpm dev:frontend"
@@ -87,9 +95,11 @@ case "${1:-}" in
     echo ""
     echo "Development:"
     echo "  setup       Install all dependencies and seed database"
-    echo "  dev         Start both frontend and backend servers"
+    echo "  dev         Start frontend and backend servers"
+    echo "  dev:all     Start all servers (frontend + backend + docs)"
     echo "  dev:frontend  Start frontend server only"
     echo "  dev:backend   Start backend server only"
+    echo "  dev:docs      Start docs server only"
     echo ""
     echo "Quality:"
     echo "  test        Run all tests"
