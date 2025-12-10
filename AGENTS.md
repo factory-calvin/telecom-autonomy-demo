@@ -5,12 +5,14 @@ Instructions for AI agents working on this codebase.
 ## Project Overview
 
 FactoryFone Admin Portal - A telecom user administration system with:
+
 - **Frontend**: Next.js 16 (App Router) + React 19 + Tailwind CSS 4 + shadcn/ui + Recharts
 - **Backend**: Spring Boot 4.0 + Java 25 + Gradle + SQLite
 
 ## Application Domain
 
 This is a telecom admin portal for managing:
+
 - **Customers** - Subscriber accounts with plans, status, and balance
 - **Plans** - Service plans (Basic, Standard, Premium, Unlimited, Family)
 - **Devices** - Device/SIM inventory with assignment tracking
@@ -41,31 +43,54 @@ This is a telecom admin portal for managing:
 
 ## Data Model
 
-| Entity | Key Fields |
-|--------|------------|
-| Plan | name, monthlyPrice, dataLimitGb, minutesLimit, smsLimit, isActive |
-| Customer | firstName, lastName, email, phone, plan, status, balance |
-| Device | imei, model, simNumber, customer, status |
-| UsageRecord | customer, type (CALL/DATA/SMS), quantity, cost, recordedAt |
-| SupportTicket | customer, subject, description, priority, status |
+| Entity        | Key Fields                                                        |
+| ------------- | ----------------------------------------------------------------- |
+| Plan          | name, monthlyPrice, dataLimitGb, minutesLimit, smsLimit, isActive |
+| Customer      | firstName, lastName, email, phone, plan, status, balance          |
+| Device        | imei, model, simNumber, customer, status                          |
+| UsageRecord   | customer, type (CALL/DATA/SMS), quantity, cost, recordedAt        |
+| SupportTicket | customer, subject, description, priority, status                  |
 
 ## API Endpoints
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/health` | Health check |
-| `GET/POST/PUT/DELETE /api/customers` | Customer CRUD |
-| `GET/POST/PUT/DELETE /api/plans` | Plan CRUD |
-| `GET/POST/PUT/DELETE /api/devices` | Device CRUD |
-| `GET /api/usage` | Usage records (read-only) |
-| `GET/POST/PUT/DELETE /api/tickets` | Support ticket CRUD |
-| `GET /api/dashboard/stats` | Dashboard KPIs |
-| `GET /api/dashboard/customers-by-plan` | Chart data |
-| `GET /api/dashboard/devices-by-status` | Chart data |
-| `GET /api/dashboard/tickets-by-status` | Chart data |
-| `GET /api/dashboard/revenue-by-plan` | Chart data |
+| Endpoint                               | Description               |
+| -------------------------------------- | ------------------------- |
+| `GET /api/health`                      | Health check              |
+| `GET/POST/PUT/DELETE /api/customers`   | Customer CRUD             |
+| `GET/POST/PUT/DELETE /api/plans`       | Plan CRUD                 |
+| `GET/POST/PUT/DELETE /api/devices`     | Device CRUD               |
+| `GET /api/usage`                       | Usage records (read-only) |
+| `GET/POST/PUT/DELETE /api/tickets`     | Support ticket CRUD       |
+| `GET /api/dashboard/stats`             | Dashboard KPIs            |
+| `GET /api/dashboard/customers-by-plan` | Chart data                |
+| `GET /api/dashboard/devices-by-status` | Chart data                |
+| `GET /api/dashboard/tickets-by-status` | Chart data                |
+| `GET /api/dashboard/revenue-by-plan`   | Chart data                |
 
 ## Running Commands
+
+### Dev Container (Recommended)
+
+Use dev containers for consistent environment with all dependencies pre-installed:
+
+```bash
+# Container management
+pnpm dc:up            # Start dev container
+pnpm dc:down          # Stop dev container
+pnpm dc:shell         # Open shell in container
+
+# Development (in container)
+pnpm dc:setup         # Install deps + seed database
+pnpm dc:dev           # Both frontend and backend
+pnpm dc:test          # Run all tests
+pnpm dc:lint          # Run linters
+pnpm dc:format        # Run formatters
+
+# Custom commands
+pnpm dc exec <cmd>    # Run any command in container
+```
+
+### Local Development (requires Node.js 22, Java 25, Python 3)
 
 ```bash
 # Setup
@@ -95,13 +120,13 @@ pnpm lint             # ESLint + TypeScript
 
 Production-like data is generated via Python script (`scripts/seed-database.py`):
 
-| Entity | Count | Notes |
-|--------|-------|-------|
-| Plans | 8 | Basic, Standard, Premium, Unlimited, Family, Business Starter, Business Pro, Student |
-| Customers | 500 | Realistic names, emails, phones via faker |
-| Devices | 600 | Unique IMEIs and SIM numbers |
-| Usage Records | ~220k | 90 days of data with peak hour patterns |
-| Support Tickets | 250 | Various priorities and statuses |
+| Entity          | Count | Notes                                                                                |
+| --------------- | ----- | ------------------------------------------------------------------------------------ |
+| Plans           | 8     | Basic, Standard, Premium, Unlimited, Family, Business Starter, Business Pro, Student |
+| Customers       | 500   | Realistic names, emails, phones via faker                                            |
+| Devices         | 600   | Unique IMEIs and SIM numbers                                                         |
+| Usage Records   | ~220k | 90 days of data with peak hour patterns                                              |
+| Support Tickets | 250   | Various priorities and statuses                                                      |
 
 The Python seeder takes precedence over the Java `DataSeeder.java` (which only runs if the database is empty).
 

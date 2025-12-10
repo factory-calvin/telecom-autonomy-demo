@@ -14,6 +14,7 @@ A telecom user administration system built with Next.js and Spring Boot.
 ## Tech Stack
 
 **Frontend:**
+
 - Next.js 16 with App Router
 - React 19
 - Tailwind CSS 4
@@ -22,6 +23,7 @@ A telecom user administration system built with Next.js and Spring Boot.
 - TypeScript
 
 **Backend:**
+
 - Spring Boot 4.0
 - Java 25
 - Gradle
@@ -51,13 +53,13 @@ pnpm install
 
 The Python seeder (`scripts/seed-database.py`) generates production-like data:
 
-| Entity | Count |
-|--------|-------|
-| Plans | 8 |
-| Customers | 500 |
-| Devices | 600 |
-| Usage Records | ~220,000 |
-| Support Tickets | 250 |
+| Entity          | Count    |
+| --------------- | -------- |
+| Plans           | 8        |
+| Customers       | 500      |
+| Devices         | 600      |
+| Usage Records   | ~220,000 |
+| Support Tickets | 250      |
 
 ```bash
 pnpm setup:db   # Run seeder
@@ -100,26 +102,26 @@ pnpm lint
 
 ## Application Pages
 
-| Page | URL | Description |
-|------|-----|-------------|
-| Dashboard | `/dashboard` | KPIs and charts |
+| Page      | URL          | Description           |
+| --------- | ------------ | --------------------- |
+| Dashboard | `/dashboard` | KPIs and charts       |
 | Customers | `/customers` | Subscriber management |
-| Plans | `/plans` | Service plan catalog |
-| Devices | `/devices` | Device/SIM inventory |
-| Usage | `/usage` | Usage records |
-| Tickets | `/tickets` | Support tickets |
+| Plans     | `/plans`     | Service plan catalog  |
+| Devices   | `/devices`   | Device/SIM inventory  |
+| Usage     | `/usage`     | Usage records         |
+| Tickets   | `/tickets`   | Support tickets       |
 
 ## API Endpoints
 
-| Endpoint | Methods | Description |
-|----------|---------|-------------|
-| `/api/health` | GET | Health check |
-| `/api/customers` | GET, POST, PUT, DELETE | Customer CRUD |
-| `/api/plans` | GET, POST, PUT, DELETE | Plan CRUD |
-| `/api/devices` | GET, POST, PUT, DELETE | Device CRUD |
-| `/api/usage` | GET | Usage records |
-| `/api/tickets` | GET, POST, PUT, DELETE | Ticket CRUD |
-| `/api/dashboard/*` | GET | Dashboard statistics |
+| Endpoint           | Methods                | Description          |
+| ------------------ | ---------------------- | -------------------- |
+| `/api/health`      | GET                    | Health check         |
+| `/api/customers`   | GET, POST, PUT, DELETE | Customer CRUD        |
+| `/api/plans`       | GET, POST, PUT, DELETE | Plan CRUD            |
+| `/api/devices`     | GET, POST, PUT, DELETE | Device CRUD          |
+| `/api/usage`       | GET                    | Usage records        |
+| `/api/tickets`     | GET, POST, PUT, DELETE | Ticket CRUD          |
+| `/api/dashboard/*` | GET                    | Dashboard statistics |
 
 ## Project Structure
 
