@@ -16,7 +16,7 @@ export function HealthStatus() {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/health")
+        const res = await fetch("/api/health")
         if (!res.ok) throw new Error("API unavailable")
         const data = await res.json()
         setHealth(data)

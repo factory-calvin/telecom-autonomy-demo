@@ -1,20 +1,18 @@
 "use client"
 
 import * as React from "react"
+import { usePathname } from "next/navigation"
 import {
-  BookOpen,
-  Bot,
-  Frame,
-  List,
-  Map,
-  PieChart,
-  Settings2,
-  SquareTerminal,
+  LayoutDashboard,
+  Users,
+  CreditCard,
+  Smartphone,
+  BarChart3,
+  Ticket,
 } from "lucide-react"
 
 import { Logo } from "@/components/logo"
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
 import {
@@ -25,144 +23,71 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
-// This is sample data.
-const data = {
-  user: {
-    name: "John Smith",
-    email: "john.smith@factory.ai",
-    avatar: "",
-  },
-  teams: [
-    {
-      name: "Factory",
-      logo: Logo,
-      plan: "Enterprise",
-    },
-  ],
-  navMain: [
-    {
-      title: "Items",
-      url: "/dashboard/items",
-      icon: List,
-      isActive: true,
-      items: [],
-    },
-    {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
+const user = {
+  name: "Admin User",
+  email: "admin@factoryfone.com",
+  avatar: "",
 }
 
+const teams = [
+  {
+    name: "FactoryFone",
+    logo: Logo,
+    plan: "Admin Portal",
+  },
+]
+
+const navItems = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Customers",
+    url: "/customers",
+    icon: Users,
+  },
+  {
+    title: "Plans",
+    url: "/plans",
+    icon: CreditCard,
+  },
+  {
+    title: "Devices",
+    url: "/devices",
+    icon: Smartphone,
+  },
+  {
+    title: "Usage",
+    url: "/usage",
+    icon: BarChart3,
+  },
+  {
+    title: "Support Tickets",
+    url: "/tickets",
+    icon: Ticket,
+  },
+]
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname()
+
+  const navItemsWithActive = navItems.map((item) => ({
+    ...item,
+    isActive: pathname === item.url || pathname.startsWith(item.url + "/"),
+  }))
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavMain items={navItemsWithActive} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
