@@ -20,12 +20,8 @@ public class DashboardController {
     private final DeviceRepository deviceRepository;
     private final SupportTicketRepository ticketRepository;
 
-    public DashboardController(
-        CustomerRepository customerRepository,
-        PlanRepository planRepository,
-        DeviceRepository deviceRepository,
-        SupportTicketRepository ticketRepository
-    ) {
+    public DashboardController(CustomerRepository customerRepository, PlanRepository planRepository,
+            DeviceRepository deviceRepository, SupportTicketRepository ticketRepository) {
         this.customerRepository = customerRepository;
         this.planRepository = planRepository;
         this.deviceRepository = deviceRepository;
@@ -35,65 +31,57 @@ public class DashboardController {
     @GetMapping("/stats")
     public DashboardStats getStats() {
         long activeCustomers = customerRepository.countByStatus(Customer.Status.ACTIVE);
-        
+
         BigDecimal monthlyRevenue = customerRepository.findByStatus(Customer.Status.ACTIVE).stream()
-            .filter(c -> c.getPlan() != null)
-            .map(c -> c.getPlan().getMonthlyPrice())
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-        
-        long openTickets = ticketRepository.countByStatusIn(
-            List.of(SupportTicket.Status.OPEN, SupportTicket.Status.IN_PROGRESS)
-        );
-        
+                .filter(c -> c.getPlan() != null).map(c -> c.getPlan().getMonthlyPrice())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        long openTickets = ticketRepository
+                .countByStatusIn(List.of(SupportTicket.Status.OPEN, SupportTicket.Status.IN_PROGRESS));
+
         long devicesInUse = deviceRepository.countByStatus(Device.Status.ASSIGNED);
-        
+
         return new DashboardStats(activeCustomers, monthlyRevenue, openTickets, devicesInUse);
     }
 
     @GetMapping("/customers-by-plan")
     public List<ChartData> getCustomersByPlan() {
         return customerRepository.countByPlanName().stream()
-            .map(row -> new ChartData((String) row[0], ((Number) row[1]).longValue()))
-            .toList();
+                .map(row -> new ChartData((String) row[0], ((Number) row[1]).longValue())).toList();
     }
 
     @GetMapping("/devices-by-status")
     public List<ChartData> getDevicesByStatus() {
         return deviceRepository.countByStatus().stream()
-            .map(row -> new ChartData(((Device.Status) row[0]).name(), ((Number) row[1]).longValue()))
-            .toList();
+                .map(row -> new ChartData(((Device.Status) row[0]).name(), ((Number) row[1]).longValue())).toList();
     }
 
     @GetMapping("/tickets-by-status")
     public List<ChartData> getTicketsByStatus() {
         return ticketRepository.countByStatus().stream()
-            .map(row -> new ChartData(((SupportTicket.Status) row[0]).name(), ((Number) row[1]).longValue()))
-            .toList();
+                .map(row -> new ChartData(((SupportTicket.Status) row[0]).name(), ((Number) row[1]).longValue()))
+                .toList();
     }
 
     @GetMapping("/revenue-by-plan")
     public List<RevenueData> getRevenueByPlan() {
         Map<String, Long> customerCounts = customerRepository.findByStatus(Customer.Status.ACTIVE).stream()
-            .filter(c -> c.getPlan() != null)
-            .collect(Collectors.groupingBy(c -> c.getPlan().getName(), Collectors.counting()));
-        
-        return planRepository.findAll().stream()
-            .filter(plan -> customerCounts.containsKey(plan.getName()))
-            .map(plan -> new RevenueData(
-                plan.getName(),
-                plan.getMonthlyPrice().multiply(BigDecimal.valueOf(customerCounts.get(plan.getName())))
-            ))
-            .toList();
+                .filter(c -> c.getPlan() != null)
+                .collect(Collectors.groupingBy(c -> c.getPlan().getName(), Collectors.counting()));
+
+        return planRepository.findAll().stream().filter(plan -> customerCounts.containsKey(plan.getName()))
+                .map(plan -> new RevenueData(plan.getName(),
+                        plan.getMonthlyPrice().multiply(BigDecimal.valueOf(customerCounts.get(plan.getName())))))
+                .toList();
     }
 
-    public record DashboardStats(
-        long active_customers,
-        BigDecimal monthly_revenue,
-        long open_tickets,
-        long devices_in_use
-    ) {}
+    public record DashboardStats(long active_customers, BigDecimal monthly_revenue, long open_tickets,
+            long devices_in_use) {
+    }
 
-    public record ChartData(String name, long value) {}
-    
-    public record RevenueData(String name, BigDecimal revenue) {}
+    public record ChartData(String name, long value) {
+    }
+
+    public record RevenueData(String name, BigDecimal revenue) {
+    }
 }

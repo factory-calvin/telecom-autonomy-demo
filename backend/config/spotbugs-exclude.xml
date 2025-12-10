@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- Exclude Spring Boot generated classes -->
+    <Match>
+        <Class name="~com\.example\.demo\.DemoApplication\$\$.*"/>
+    </Match>
+
+    <!-- Exclude test classes from security checks -->
+    <Match>
+        <Source name="~.*Test\.java"/>
+        <Bug category="SECURITY"/>
+    </Match>
+
+    <!-- Exclude JPA entity equals/hashCode warnings (intentional design) -->
+    <Match>
+        <Package name="com.example.demo.model"/>
+        <Bug pattern="EQ_DOESNT_OVERRIDE_EQUALS"/>
+    </Match>
+
+    <!-- Exclude false positives for Spring Data repositories -->
+    <Match>
+        <Package name="com.example.demo.repository"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+
+    <!-- Allow Spring's @Autowired injection patterns -->
+    <Match>
+        <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+        <Or>
+            <Annotation name="org.springframework.beans.factory.annotation.Autowired"/>
+            <Annotation name="jakarta.inject.Inject"/>
+        </Or>
+    </Match>
+</FindBugsFilter>

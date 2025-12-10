@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 
 @RestController
@@ -30,9 +29,8 @@ public class CustomerController {
 
     @GetMapping("/{id}")
     public ResponseEntity<CustomerResponse> getCustomer(@PathVariable Long id) {
-        return repository.findById(id)
-            .map(customer -> ResponseEntity.ok(CustomerResponse.from(customer)))
-            .orElse(ResponseEntity.notFound().build());
+        return repository.findById(id).map(customer -> ResponseEntity.ok(CustomerResponse.from(customer)))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
@@ -41,13 +39,8 @@ public class CustomerController {
         if (plan == null) {
             return ResponseEntity.badRequest().build();
         }
-        Customer customer = new Customer(
-            request.firstName(),
-            request.lastName(),
-            request.email(),
-            request.phone(),
-            plan
-        );
+        Customer customer = new Customer(request.firstName(), request.lastName(), request.email(), request.phone(),
+                plan);
         if (request.balance() != null) {
             customer.setBalance(request.balance());
         }
@@ -55,25 +48,24 @@ public class CustomerController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CustomerResponse> updateCustomer(@PathVariable Long id, @RequestBody CustomerRequest request) {
-        return repository.findById(id)
-            .map(customer -> {
-                customer.setFirstName(request.firstName());
-                customer.setLastName(request.lastName());
-                customer.setEmail(request.email());
-                customer.setPhone(request.phone());
-                if (request.planId() != null) {
-                    planRepository.findById(request.planId()).ifPresent(customer::setPlan);
-                }
-                if (request.status() != null) {
-                    customer.setStatus(Customer.Status.valueOf(request.status()));
-                }
-                if (request.balance() != null) {
-                    customer.setBalance(request.balance());
-                }
-                return ResponseEntity.ok(CustomerResponse.from(repository.save(customer)));
-            })
-            .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<CustomerResponse> updateCustomer(@PathVariable Long id,
+            @RequestBody CustomerRequest request) {
+        return repository.findById(id).map(customer -> {
+            customer.setFirstName(request.firstName());
+            customer.setLastName(request.lastName());
+            customer.setEmail(request.email());
+            customer.setPhone(request.phone());
+            if (request.planId() != null) {
+                planRepository.findById(request.planId()).ifPresent(customer::setPlan);
+            }
+            if (request.status() != null) {
+                customer.setStatus(Customer.Status.valueOf(request.status()));
+            }
+            if (request.balance() != null) {
+                customer.setBalance(request.balance());
+            }
+            return ResponseEntity.ok(CustomerResponse.from(repository.save(customer)));
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
@@ -85,43 +77,20 @@ public class CustomerController {
         return ResponseEntity.noContent().build();
     }
 
-    public record CustomerRequest(
-        String firstName,
-        String lastName,
-        String email,
-        String phone,
-        Long planId,
-        String status,
-        BigDecimal balance
-    ) {}
+    public record CustomerRequest(String firstName, String lastName, String email, String phone, Long planId,
+            String status, BigDecimal balance) {
+    }
 
-    public record CustomerResponse(
-        Long id,
-        String first_name,
-        String last_name,
-        String email,
-        String phone,
-        Long plan_id,
-        String plan_name,
-        String status,
-        BigDecimal balance,
-        String activated_at,
-        String created_at
-    ) {
+    public record CustomerResponse(Long id, String first_name, String last_name, String email, String phone,
+            Long plan_id, String plan_name, String status, BigDecimal balance, String activated_at, String created_at) {
         public static CustomerResponse from(Customer customer) {
-            return new CustomerResponse(
-                customer.getId(),
-                customer.getFirstName(),
-                customer.getLastName(),
-                customer.getEmail(),
-                customer.getPhone(),
-                customer.getPlan() != null ? customer.getPlan().getId() : null,
-                customer.getPlan() != null ? customer.getPlan().getName() : null,
-                customer.getStatus().name(),
-                customer.getBalance(),
-                customer.getActivatedAt() != null ? customer.getActivatedAt().toString() : null,
-                customer.getCreatedAt() != null ? customer.getCreatedAt().toString() : null
-            );
+            return new CustomerResponse(customer.getId(), customer.getFirstName(), customer.getLastName(),
+                    customer.getEmail(), customer.getPhone(),
+                    customer.getPlan() != null ? customer.getPlan().getId() : null,
+                    customer.getPlan() != null ? customer.getPlan().getName() : null, customer.getStatus().name(),
+                    customer.getBalance(),
+                    customer.getActivatedAt() != null ? customer.getActivatedAt().toString() : null,
+                    customer.getCreatedAt() != null ? customer.getCreatedAt().toString() : null);
         }
     }
 }

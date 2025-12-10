@@ -12,10 +12,6 @@ public class HealthController {
 
     @GetMapping("/health")
     public Map<String, String> health() {
-        return Map.of(
-            "status", "ok",
-            "service", "FactoryFone API",
-            "version", "1.0.0"
-        );
+        return Map.of("status", "ok", "service", "FactoryFone API", "version", "1.0.0");
     }
 }

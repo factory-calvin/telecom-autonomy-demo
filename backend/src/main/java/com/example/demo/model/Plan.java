@@ -29,7 +29,8 @@ public class Plan {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    public Plan() {}
+    public Plan() {
+    }
 
     public Plan(String name, BigDecimal monthlyPrice, Integer dataLimitGb, Integer minutesLimit, Integer smsLimit) {
         this.name = name;
@@ -40,24 +41,59 @@ public class Plan {
         this.isActive = true;
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public BigDecimal getMonthlyPrice() { return monthlyPrice; }
-    public void setMonthlyPrice(BigDecimal monthlyPrice) { this.monthlyPrice = monthlyPrice; }
+    public String getName() {
+        return name;
+    }
 
-    public Integer getDataLimitGb() { return dataLimitGb; }
-    public void setDataLimitGb(Integer dataLimitGb) { this.dataLimitGb = dataLimitGb; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public Integer getMinutesLimit() { return minutesLimit; }
-    public void setMinutesLimit(Integer minutesLimit) { this.minutesLimit = minutesLimit; }
+    public BigDecimal getMonthlyPrice() {
+        return monthlyPrice;
+    }
 
-    public Integer getSmsLimit() { return smsLimit; }
-    public void setSmsLimit(Integer smsLimit) { this.smsLimit = smsLimit; }
+    public void setMonthlyPrice(BigDecimal monthlyPrice) {
+        this.monthlyPrice = monthlyPrice;
+    }
 
-    public Boolean getIsActive() { return isActive; }
-    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+    public Integer getDataLimitGb() {
+        return dataLimitGb;
+    }
+
+    public void setDataLimitGb(Integer dataLimitGb) {
+        this.dataLimitGb = dataLimitGb;
+    }
+
+    public Integer getMinutesLimit() {
+        return minutesLimit;
+    }
+
+    public void setMinutesLimit(Integer minutesLimit) {
+        this.minutesLimit = minutesLimit;
+    }
+
+    public Integer getSmsLimit() {
+        return smsLimit;
+    }
+
+    public void setSmsLimit(Integer smsLimit) {
+        this.smsLimit = smsLimit;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
 }

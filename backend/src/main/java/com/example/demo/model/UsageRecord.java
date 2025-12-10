@@ -33,7 +33,8 @@ public class UsageRecord {
     @Column(name = "recorded_at", nullable = false)
     private Instant recordedAt;
 
-    public UsageRecord() {}
+    public UsageRecord() {
+    }
 
     public UsageRecord(Customer customer, Type type, BigDecimal quantity, BigDecimal cost, Instant recordedAt) {
         this.customer = customer;
@@ -43,21 +44,51 @@ public class UsageRecord {
         this.recordedAt = recordedAt;
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Customer getCustomer() { return customer; }
-    public void setCustomer(Customer customer) { this.customer = customer; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public Type getType() { return type; }
-    public void setType(Type type) { this.type = type; }
+    public Customer getCustomer() {
+        return customer;
+    }
 
-    public BigDecimal getQuantity() { return quantity; }
-    public void setQuantity(BigDecimal quantity) { this.quantity = quantity; }
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }
 
-    public BigDecimal getCost() { return cost; }
-    public void setCost(BigDecimal cost) { this.cost = cost; }
+    public Type getType() {
+        return type;
+    }
 
-    public Instant getRecordedAt() { return recordedAt; }
-    public void setRecordedAt(Instant recordedAt) { this.recordedAt = recordedAt; }
+    public void setType(Type type) {
+        this.type = type;
+    }
+
+    public BigDecimal getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(BigDecimal quantity) {
+        this.quantity = quantity;
+    }
+
+    public BigDecimal getCost() {
+        return cost;
+    }
+
+    public void setCost(BigDecimal cost) {
+        this.cost = cost;
+    }
+
+    public Instant getRecordedAt() {
+        return recordedAt;
+    }
+
+    public void setRecordedAt(Instant recordedAt) {
+        this.recordedAt = recordedAt;
+    }
 }

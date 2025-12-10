@@ -2,6 +2,9 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.0.0'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.diffplug.spotless' version '7.0.4'
+	id 'com.github.spotbugs' version '6.1.11'
+	id 'pmd'
 }
 
 group = 'com.example'
@@ -26,8 +29,81 @@ dependencies {
 	implementation 'org.hibernate.orm:hibernate-community-dialects:7.0.0.Final'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.13.0'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// Spotless - Java code formatting
+spotless {
+	java {
+		target 'src/**/*.java'
+		eclipse().configFile("${rootDir}/config/eclipse-formatter.xml")
+		removeUnusedImports()
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
+}
+
+// SpotBugs - Static analysis and security checks
+spotbugs {
+	ignoreFailures = true // Set to false once existing issues are fixed
+	showStackTraces = true
+	showProgress = true
+	effort = 'max'
+	reportLevel = 'medium'
+	excludeFilter = file("${rootDir}/config/spotbugs-exclude.xml")
+}
+
+spotbugsMain {
+	reports {
+		html.required = true
+		xml.required = false
+	}
+}
+
+spotbugsTest {
+	reports {
+		html.required = true
+		xml.required = false
+	}
+}
+
+// PMD - Additional code quality and security rules
+pmd {
+	consoleOutput = true
+	ignoreFailures = true // Set to false once existing issues are fixed
+	rulesMinimumPriority = 3
+	ruleSetFiles = files("${rootDir}/config/pmd-ruleset.xml")
+}
+
+pmdMain {
+	source = sourceSets.main.allJava
+}
+
+pmdTest {
+	source = sourceSets.test.allJava
+}
+
+// Combined lint task
+tasks.register('lint') {
+	dependsOn 'spotbugsMain', 'spotbugsTest', 'pmdMain', 'pmdTest'
+	description = 'Run all static analysis tools'
+	group = 'verification'
+}
+
+// Format check task
+tasks.register('formatCheck') {
+	dependsOn 'spotlessCheck'
+	description = 'Check code formatting'
+	group = 'verification'
+}
+
+// Format apply task
+tasks.register('format') {
+	dependsOn 'spotlessApply'
+	description = 'Apply code formatting'
+	group = 'verification'
 }
