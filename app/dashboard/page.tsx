@@ -1,11 +1,11 @@
+"use client"
+
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
-  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -13,9 +13,95 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { HealthStatus } from "@/components/health-status"
+import { useDashboardStats } from "@/hooks/use-dashboard-stats"
+import { Users, DollarSign, Ticket, Smartphone } from "lucide-react"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart"
+import { Bar, BarChart, Pie, PieChart, XAxis, YAxis, CartesianGrid } from "recharts"
 
-export default function Page() {
+const customersByPlanConfig: ChartConfig = {
+  value: { label: "Customers" },
+  Basic: { label: "Basic", color: "var(--chart-1)" },
+  Standard: { label: "Standard", color: "var(--chart-2)" },
+  Premium: { label: "Premium", color: "var(--chart-3)" },
+  Unlimited: { label: "Unlimited", color: "var(--chart-4)" },
+  Family: { label: "Family", color: "var(--chart-5)" },
+  "Business Starter": { label: "Business Starter", color: "var(--chart-6)" },
+  "Business Pro": { label: "Business Pro", color: "var(--chart-7)" },
+  Student: { label: "Student", color: "var(--chart-8)" },
+}
+
+const revenueByPlanConfig: ChartConfig = {
+  revenue: { label: "Revenue" },
+  Basic: { label: "Basic", color: "var(--chart-1)" },
+  Standard: { label: "Standard", color: "var(--chart-2)" },
+  Premium: { label: "Premium", color: "var(--chart-3)" },
+  Unlimited: { label: "Unlimited", color: "var(--chart-4)" },
+  Family: { label: "Family", color: "var(--chart-5)" },
+  "Business Starter": { label: "Business Starter", color: "var(--chart-6)" },
+  "Business Pro": { label: "Business Pro", color: "var(--chart-7)" },
+  Student: { label: "Student", color: "var(--chart-8)" },
+}
+
+const devicesByStatusConfig: ChartConfig = {
+  value: { label: "Devices" },
+  ASSIGNED: { label: "Assigned", color: "var(--chart-1)" },
+  AVAILABLE: { label: "Available", color: "var(--chart-3)" },
+  DAMAGED: { label: "Damaged", color: "var(--chart-5)" },
+  LOST: { label: "Lost", color: "#e82010" },
+}
+
+const ticketsByStatusConfig: ChartConfig = {
+  value: { label: "Tickets" },
+  OPEN: { label: "Open", color: "var(--chart-5)" },
+  IN_PROGRESS: { label: "In Progress", color: "var(--chart-1)" },
+  RESOLVED: { label: "Resolved", color: "var(--chart-3)" },
+  CLOSED: { label: "Closed", color: "var(--chart-4)" },
+}
+
+export default function DashboardPage() {
+  const {
+    stats,
+    customersByPlan,
+    devicesByStatus,
+    ticketsByStatus,
+    revenueByPlan,
+    loading,
+    error,
+  } = useDashboardStats()
+
+  if (loading) {
+    return (
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <div className="flex items-center justify-center h-screen">
+            <div className="text-muted-foreground">Loading dashboard...</div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    )
+  }
+
+  if (error) {
+    return (
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <div className="flex items-center justify-center h-screen">
+            <div className="text-red-500">{error}</div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    )
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -23,20 +109,11 @@ export default function Page() {
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4 flex-1">
             <SidebarTrigger className="-ml-1" />
-            <Separator
-              orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4"
-            />
+            <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Building Your Application
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                  <BreadcrumbPage>Dashboard</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -45,13 +122,190 @@ export default function Page() {
             </div>
           </div>
         </header>
+
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-            <div className="bg-muted/50 aspect-video rounded-xl" />
+          {/* KPI Cards */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-body-small">Active Customers</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-headline-2">{stats?.active_customers || 0}</div>
+                <p className="text-caption text-muted-foreground">Total active subscribers</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-body-small">Monthly Revenue</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-headline-2">
+                  ${stats?.monthly_revenue?.toFixed(2) || "0.00"}
+                </div>
+                <p className="text-caption text-muted-foreground">From active subscriptions</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-body-small">Open Tickets</CardTitle>
+                <Ticket className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-headline-2">{stats?.open_tickets || 0}</div>
+                <p className="text-caption text-muted-foreground">Requiring attention</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-body-small">Devices in Use</CardTitle>
+                <Smartphone className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-headline-2">{stats?.devices_in_use || 0}</div>
+                <p className="text-caption text-muted-foreground">Assigned to customers</p>
+              </CardContent>
+            </Card>
           </div>
-          <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
+
+          {/* Charts Row 1 */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-headline-3">Customers by Plan</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer
+                  config={customersByPlanConfig}
+                  className="mx-auto h-[250px] w-full"
+                >
+                  <PieChart accessibilityLayer>
+                    <ChartTooltip
+                      cursor={false}
+                      content={<ChartTooltipContent hideLabel nameKey="name" />}
+                    />
+                    <Pie
+                      data={customersByPlan.map((item) => ({
+                        ...item,
+                        fill: customersByPlanConfig[item.name as keyof typeof customersByPlanConfig]?.color || "var(--chart-1)",
+                      }))}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={60}
+                      outerRadius={100}
+                    />
+                  </PieChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-headline-3">Revenue by Plan</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer
+                  config={revenueByPlanConfig}
+                  className="h-[250px] w-full"
+                >
+                  <BarChart
+                    accessibilityLayer
+                    data={revenueByPlan.map((item) => ({
+                      ...item,
+                      fill: revenueByPlanConfig[item.name as keyof typeof revenueByPlanConfig]?.color || "var(--chart-1)",
+                    }))}
+                  >
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                      dataKey="name"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={10}
+                    />
+                    <YAxis
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(value) => `$${value}`}
+                    />
+                    <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
+                    <Bar dataKey="revenue" radius={4} />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Charts Row 2 */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-headline-3">Device Status</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer
+                  config={devicesByStatusConfig}
+                  className="h-[250px] w-full"
+                >
+                  <BarChart
+                    accessibilityLayer
+                    data={devicesByStatus.map((item) => ({
+                      ...item,
+                      fill: devicesByStatusConfig[item.name as keyof typeof devicesByStatusConfig]?.color || "var(--chart-4)",
+                    }))}
+                    layout="vertical"
+                  >
+                    <CartesianGrid horizontal={false} />
+                    <XAxis
+                      type="number"
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      dataKey="name"
+                      type="category"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={10}
+                      width={85}
+                    />
+                    <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
+                    <Bar dataKey="value" radius={4} />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-headline-3">Ticket Status</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer
+                  config={ticketsByStatusConfig}
+                  className="mx-auto h-[250px] w-full"
+                >
+                  <PieChart accessibilityLayer>
+                    <ChartTooltip
+                      cursor={false}
+                      content={<ChartTooltipContent hideLabel nameKey="name" />}
+                    />
+                    <Pie
+                      data={ticketsByStatus.map((item) => ({
+                        ...item,
+                        fill: ticketsByStatusConfig[item.name as keyof typeof ticketsByStatusConfig]?.color || "var(--chart-4)",
+                      }))}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={60}
+                      outerRadius={100}
+                    />
+                  </PieChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </SidebarInset>
     </SidebarProvider>

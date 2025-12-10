@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
@@ -20,37 +19,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus } from "lucide-react"
 import { HealthStatus } from "@/components/health-status"
-import { ItemsTable } from "@/components/items-table"
-import { ItemFormDialog } from "@/components/item-form-dialog"
-import { useItems, type Item } from "@/hooks/use-items"
+import { DevicesTable } from "@/components/devices-table"
+import { useDevices, type Device } from "@/hooks/use-devices"
 
-export default function ItemsPage() {
-  const { items, loading, error, createItem, updateItem, deleteItem } =
-    useItems()
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingItem, setEditingItem] = useState<Item | null>(null)
+export default function DevicesPage() {
+  const { devices, loading, error, deleteDevice } = useDevices()
 
-  const handleCreate = () => {
-    setEditingItem(null)
-    setDialogOpen(true)
+  const handleEdit = (device: Device) => {
+    alert(`Edit device: ${device.model} (${device.imei})`)
   }
 
-  const handleEdit = (item: Item) => {
-    setEditingItem(item)
-    setDialogOpen(true)
-  }
-
-  const handleDelete = async (item: Item) => {
-    if (confirm(`Delete "${item.name}"?`)) {
-      await deleteItem(item.id)
-    }
-  }
-
-  const handleSubmit = async (data: { name: string; description?: string | null }) => {
-    if (editingItem) {
-      await updateItem(editingItem.id, data)
-    } else {
-      await createItem(data)
+  const handleDelete = async (device: Device) => {
+    if (confirm(`Delete device "${device.model}"?`)) {
+      await deleteDevice(device.id)
     }
   }
 
@@ -61,10 +42,7 @@ export default function ItemsPage() {
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4 flex-1">
             <SidebarTrigger className="-ml-1" />
-            <Separator
-              orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4"
-            />
+            <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
@@ -72,7 +50,7 @@ export default function ItemsPage() {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Items</BreadcrumbPage>
+                  <BreadcrumbPage>Devices</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -84,36 +62,23 @@ export default function ItemsPage() {
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle>Items</CardTitle>
-              <Button onClick={handleCreate}>
+              <CardTitle className="text-headline-2">Device Inventory</CardTitle>
+              <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Item
+                Add Device
               </Button>
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  Loading...
-                </div>
+                <div className="text-center py-8 text-muted-foreground">Loading...</div>
               ) : error ? (
                 <div className="text-center py-8 text-red-500">{error}</div>
               ) : (
-                <ItemsTable
-                  items={items}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onCreate={handleCreate}
-                />
+                <DevicesTable devices={devices} onEdit={handleEdit} onDelete={handleDelete} />
               )}
             </CardContent>
           </Card>
         </div>
-        <ItemFormDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          item={editingItem}
-          onSubmit={handleSubmit}
-        />
       </SidebarInset>
     </SidebarProvider>
   )
