@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"pnpm dev:frontend\" \"pnpm dev:backend\"",
+    "dev:all": "concurrently \"pnpm dev:frontend\" \"pnpm dev:backend\" \"pnpm dev:docs\"",
     "dev:frontend": "next dev",
     "dev:backend": "cd backend && ./gradlew bootRun",
+    "dev:docs": "cd docs && pnpm start --port 3001",
     "build": "next build",
     "build:backend": "cd backend && ./gradlew build",
     "start": "concurrently \"pnpm start:frontend\" \"pnpm start:backend\"",
