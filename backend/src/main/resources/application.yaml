@@ -1,6 +1,6 @@
 spring:
   application:
-    name: demo
+    name: factoryfone-backend
   datasource:
     url: jdbc:sqlite:app.db
     driver-class-name: org.sqlite.JDBC
@@ -14,4 +14,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
