@@ -26,25 +26,25 @@ jobs:
         run: |
           # Get the base branch
           BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
-          
+
           # Fetch base branch
           git fetch origin $BASE_BRANCH
-          
+
           # Get list of changed files
           CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH...HEAD)
-          
+
           # Check if any code files changed
           CODE_CHANGED=$(echo "$CHANGED_FILES" | grep -E '\.(ts|tsx|js|jsx|java|py)$' | grep -v '\.test\.' | grep -v '\.spec\.' | grep -v '__tests__' || true)
-          
+
           # Check if any docs changed
           DOCS_CHANGED=$(echo "$CHANGED_FILES" | grep -E '(\.md$|^docs/)' || true)
-          
+
           echo "Changed code files:"
           echo "$CODE_CHANGED"
           echo ""
           echo "Changed doc files:"
           echo "$DOCS_CHANGED"
-          
+
           if [ -n "$CODE_CHANGED" ] && [ -z "$DOCS_CHANGED" ]; then
             echo "needs_docs=true" >> $GITHUB_OUTPUT
             echo "⚠️ Code changes detected without documentation updates"
@@ -60,16 +60,16 @@ jobs:
           factory_api_key: ${{ secrets.FACTORY_API_KEY }}
           prompt: |
             This PR contains code changes but no documentation updates.
-            
+
             Please review the changes and determine if documentation updates are needed.
             If updates are needed:
             1. Update relevant docs in the docs/ directory
             2. Update AGENTS.md if the change affects development workflow
             3. Update README.md if the change affects setup or usage
-            
+
             If no documentation is needed, add a comment explaining why and suggest
             adding the 'skip-docs' label to bypass this check.
-            
+
             Changed files in this PR:
             ${{ steps.docs-check.outputs.changed_files }}
 
