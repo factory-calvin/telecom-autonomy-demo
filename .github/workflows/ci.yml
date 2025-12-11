@@ -41,6 +41,22 @@ jobs:
           path: coverage/
           retention-days: 30
 
+      - name: Upload frontend test results
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: frontend-test-results
+          path: test-results/
+          retention-days: 30
+
+      - name: Publish Test Results
+        uses: dorny/test-reporter@v2
+        if: ${{ !cancelled() }}
+        with:
+          name: Frontend Tests
+          path: test-results/junit.xml
+          reporter: java-junit
+
       - name: Build
         run: pnpm build
 
@@ -76,6 +92,22 @@ jobs:
           name: backend-coverage
           path: backend/build/reports/jacoco/
           retention-days: 30
+
+      - name: Upload backend test results
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: backend-test-results
+          path: backend/build/test-results/
+          retention-days: 30
+
+      - name: Publish Test Results
+        uses: dorny/test-reporter@v2
+        if: ${{ !cancelled() }}
+        with:
+          name: Backend Tests
+          path: backend/build/test-results/test/*.xml
+          reporter: java-junit
 
       - name: Build
         run: ./gradlew build -x test

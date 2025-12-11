@@ -9,6 +9,11 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./__tests__/setup.ts"],
     exclude: ["**/node_modules/**", "**/e2e/**"],
+    reporters: ["default", "json", "junit"],
+    outputFile: {
+      json: "./test-results/results.json",
+      junit: "./test-results/junit.xml",
+    },
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html", "lcov"],
