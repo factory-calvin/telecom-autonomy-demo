@@ -31,8 +31,15 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      - name: Test
-        run: pnpm test:frontend
+      - name: Test with coverage
+        run: pnpm test:frontend:coverage
+
+      - name: Upload frontend coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: coverage/
+          retention-days: 30
 
       - name: Build
         run: pnpm build
@@ -60,8 +67,15 @@ jobs:
       - name: Lint
         run: ./gradlew lint
 
-      - name: Test
-        run: ./gradlew test
+      - name: Test with coverage
+        run: ./gradlew test jacocoTestReport
+
+      - name: Upload backend coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/build/reports/jacoco/
+          retention-days: 30
 
       - name: Build
         run: ./gradlew build -x test

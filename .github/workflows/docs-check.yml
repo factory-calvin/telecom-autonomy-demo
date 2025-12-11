@@ -1,0 +1,84 @@
+name: Documentation Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+jobs:
+  check-docs:
+    name: Check Documentation
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-docs') }}
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Check for documentation changes
+        id: docs-check
+        run: |
+          # Get the base branch
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          
+          # Fetch base branch
+          git fetch origin $BASE_BRANCH
+          
+          # Get list of changed files
+          CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH...HEAD)
+          
+          # Check if any code files changed
+          CODE_CHANGED=$(echo "$CHANGED_FILES" | grep -E '\.(ts|tsx|js|jsx|java|py)$' | grep -v '\.test\.' | grep -v '\.spec\.' | grep -v '__tests__' || true)
+          
+          # Check if any docs changed
+          DOCS_CHANGED=$(echo "$CHANGED_FILES" | grep -E '(\.md$|^docs/)' || true)
+          
+          echo "Changed code files:"
+          echo "$CODE_CHANGED"
+          echo ""
+          echo "Changed doc files:"
+          echo "$DOCS_CHANGED"
+          
+          if [ -n "$CODE_CHANGED" ] && [ -z "$DOCS_CHANGED" ]; then
+            echo "needs_docs=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Code changes detected without documentation updates"
+          else
+            echo "needs_docs=false" >> $GITHUB_OUTPUT
+            echo "✅ Documentation is up to date or no code changes"
+          fi
+
+      - name: Request documentation update via Droid
+        if: steps.docs-check.outputs.needs_docs == 'true'
+        uses: Factory-AI/droid-action@v1
+        with:
+          factory_api_key: ${{ secrets.FACTORY_API_KEY }}
+          prompt: |
+            This PR contains code changes but no documentation updates.
+            
+            Please review the changes and determine if documentation updates are needed.
+            If updates are needed:
+            1. Update relevant docs in the docs/ directory
+            2. Update AGENTS.md if the change affects development workflow
+            3. Update README.md if the change affects setup or usage
+            
+            If no documentation is needed, add a comment explaining why and suggest
+            adding the 'skip-docs' label to bypass this check.
+            
+            Changed files in this PR:
+            ${{ steps.docs-check.outputs.changed_files }}
+
+  skip-docs-acknowledged:
+    name: Skip Docs (Acknowledged)
+    runs-on: ubuntu-latest
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'skip-docs') }}
+    steps:
+      - name: Documentation skip acknowledged
+        run: |
+          echo "✅ Documentation check skipped via 'skip-docs' label"
+          echo "The PR author has indicated that no documentation updates are needed for this change."
