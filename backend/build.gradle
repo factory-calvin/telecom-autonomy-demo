@@ -65,9 +65,9 @@ tasks.named('test') {
 	}
 }
 
-// JaCoCo - Code coverage
+// JaCoCo - Code coverage (0.8.14 required for Java 25 support)
 jacoco {
-	toolVersion = "0.8.12"
+	toolVersion = "0.8.14"
 }
 
 jacocoTestReport {
