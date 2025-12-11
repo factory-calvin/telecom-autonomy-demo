@@ -1,5 +1,6 @@
 plugins {
 	id 'java'
+	id 'jacoco'
 	id 'org.springframework.boot' version '4.0.0'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'com.diffplug.spotless' version '7.0.4'
@@ -28,6 +29,12 @@ dependencies {
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
 	runtimeOnly 'org.xerial:sqlite-jdbc:3.47.1.0'
 	implementation 'org.hibernate.orm:hibernate-community-dialects:7.0.0.Final'
+
+	// OpenTelemetry
+	implementation 'io.micrometer:micrometer-tracing-bridge-otel:1.4.4'
+	implementation 'io.opentelemetry:opentelemetry-exporter-otlp:1.48.0'
+	implementation 'io.opentelemetry:opentelemetry-sdk:1.48.0'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.13.0'
@@ -35,6 +42,41 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+	
+	// Test performance tracking - output timing for each test
+	testLogging {
+		events "passed", "skipped", "failed"
+		showStandardStreams = false
+		exceptionFormat = "full"
+		// Show test duration
+		afterSuite { desc, result ->
+			if (!desc.parent) {
+				println "\nTest Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} passed, ${result.failedTestCount} failed, ${result.skippedTestCount} skipped)"
+				println "Test Duration: ${(result.endTime - result.startTime) / 1000}s"
+			}
+		}
+	}
+	
+	// Generate JUnit XML reports for CI integration
+	reports {
+		junitXml.required = true
+		html.required = true
+	}
+}
+
+// JaCoCo - Code coverage (0.8.14 required for Java 25 support)
+jacoco {
+	toolVersion = "0.8.14"
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+		csv.required = false
+	}
 }
 
 // Spotless - Java code formatting

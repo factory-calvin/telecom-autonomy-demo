@@ -31,8 +31,31 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      - name: Test
-        run: pnpm test:frontend
+      - name: Test with coverage
+        run: pnpm test:frontend:coverage
+
+      - name: Upload frontend coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: coverage/
+          retention-days: 30
+
+      - name: Upload frontend test results
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: frontend-test-results
+          path: test-results/
+          retention-days: 30
+
+      - name: Publish Test Results
+        uses: dorny/test-reporter@v2
+        if: ${{ !cancelled() }}
+        with:
+          name: Frontend Tests
+          path: test-results/junit.xml
+          reporter: java-junit
 
       - name: Build
         run: pnpm build
@@ -60,11 +83,78 @@ jobs:
       - name: Lint
         run: ./gradlew lint
 
-      - name: Test
-        run: ./gradlew test
+      - name: Test with coverage
+        run: ./gradlew test jacocoTestReport
+
+      - name: Upload backend coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/build/reports/jacoco/
+          retention-days: 30
+
+      - name: Upload backend test results
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: backend-test-results
+          path: backend/build/test-results/
+          retention-days: 30
+
+      - name: Publish Test Results
+        uses: dorny/test-reporter@v2
+        if: ${{ !cancelled() }}
+        with:
+          name: Backend Tests
+          path: backend/build/test-results/test/*.xml
+          reporter: java-junit
 
       - name: Build
         run: ./gradlew build -x test
+
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "25"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium
+
+      - name: Setup database
+        run: |
+          pip install faker
+          python3 scripts/seed-database.py
+
+      - name: Run E2E tests
+        run: pnpm test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
 
   docs:
     name: Documentation

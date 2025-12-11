@@ -18,6 +18,8 @@ const eslintConfig = defineConfig([
     "docs/build/**",
     "docs/.docusaurus/**",
     "docs/node_modules/**",
+    // Ignore coverage reports
+    "coverage/**",
   ]),
   {
     rules: {
