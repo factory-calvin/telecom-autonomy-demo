@@ -1,0 +1,242 @@
+name: QA Pass
+
+# Informational / non-blocking QA. Runs the qa skill against a freshly-started
+# local stack inside the runner. To make this a required check, add it to
+# branch protection rules in the repo settings.
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: qa-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qa:
+    name: End-to-end QA (informational)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      pull-requests: write
+      # PR conversation comments hit the issues API (POST /repos/.../issues/{n}/comments).
+      # GitHub accepts either pull-requests:write or issues:write for PR comments, but
+      # we grant both here defensively so the github-script step can never 403.
+      issues: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "25"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Every step below is marked continue-on-error so this informational
+      # workflow never blocks merge. A degraded run will still post a PR
+      # comment + upload artifacts so reviewers can see what went wrong.
+
+      - name: Install ImageMagick
+        continue-on-error: true
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick
+
+      - name: Install Python deps
+        continue-on-error: true
+        run: pip install faker pyyaml
+
+      - name: Install Node deps
+        continue-on-error: true
+        run: pnpm install
+
+      - name: Install Playwright Chromium (fallback browser engine)
+        continue-on-error: true
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Reset and seed database
+        continue-on-error: true
+        run: pnpm reset:db
+
+      - name: Build backend (skip tests)
+        continue-on-error: true
+        working-directory: backend
+        run: ./gradlew build -x test
+
+      - name: Start backend
+        continue-on-error: true
+        run: |
+          nohup pnpm dev:backend > backend.log 2>&1 &
+          echo "BACKEND_PID=$!" >> $GITHUB_ENV
+
+      - name: Wait for backend health
+        id: backend_health
+        continue-on-error: true
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8080/api/health > /dev/null; then
+              echo "backend healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "backend failed to start"
+          tail -200 backend.log || true
+          exit 1
+
+      - name: Start frontend
+        continue-on-error: true
+        run: |
+          nohup pnpm dev:frontend > frontend.log 2>&1 &
+          echo "FRONTEND_PID=$!" >> $GITHUB_ENV
+
+      - name: Wait for frontend
+        id: frontend_health
+        continue-on-error: true
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:3000 > /dev/null; then
+              echo "frontend healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "frontend failed to start"
+          tail -200 frontend.log || true
+          exit 1
+
+      - name: Prepare run directory
+        id: run
+        continue-on-error: true
+        run: |
+          RUN_ID=$(date -u +%Y%m%d-%H%M%S)
+          mkdir -p qa-results/screenshots qa-results/logs qa-results/results
+          echo "run_id=${RUN_ID}" >> $GITHUB_OUTPUT
+          git rev-parse HEAD > qa-results/git.txt
+          git rev-parse --abbrev-ref HEAD >> qa-results/git.txt
+
+      - name: Install droid CLI
+        # Avoid piping remote scripts directly into a shell. We download the
+        # installer to disk, log its size + SHA-256 + first lines for audit, then
+        # execute. To pin further, set EXPECTED_SHA256 below to the value printed
+        # by a known-good run; a mismatch will fail this step.
+        continue-on-error: true
+        env:
+          EXPECTED_SHA256: ""
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 --retry-delay 5 https://app.factory.ai/cli -o /tmp/factory-installer.sh
+          INSTALLER_SHA="$(sha256sum /tmp/factory-installer.sh | awk '{print $1}')"
+          INSTALLER_BYTES="$(wc -c < /tmp/factory-installer.sh)"
+          echo "Installer SHA-256: ${INSTALLER_SHA}"
+          echo "Installer size:    ${INSTALLER_BYTES} bytes"
+          echo "Installer head:"
+          head -10 /tmp/factory-installer.sh || true
+          if [ -n "${EXPECTED_SHA256}" ] && [ "${INSTALLER_SHA}" != "${EXPECTED_SHA256}" ]; then
+            echo "::error::droid installer SHA-256 mismatch. expected=${EXPECTED_SHA256} actual=${INSTALLER_SHA}"
+            exit 1
+          fi
+          if [ "${INSTALLER_BYTES}" -lt 200 ]; then
+            echo "::error::droid installer is suspiciously small (${INSTALLER_BYTES} bytes)"
+            exit 1
+          fi
+          sh /tmp/factory-installer.sh
+
+      - name: Run QA skill
+        id: qa
+        continue-on-error: true
+        timeout-minutes: 18
+        env:
+          CI: "true"
+          QA_RUN_ID: ${{ steps.run.outputs.run_id }}
+        run: |
+          export PATH="$HOME/.factory/bin:$PATH"
+          PROMPT='Run the qa skill end-to-end against the locally-running stack. You are running in a non-interactive CI environment. There is NO human available. Do NOT use AskUser, do NOT wait for confirmations, do NOT pause for input. Frontend is at http://localhost:3000 and backend is at http://localhost:8080. Both servers are already running and healthy. Analyze the git diff between origin/main and HEAD to determine which apps are affected, then run only the relevant flows from the matching sub-skills (.factory/skills/qa-web/SKILL.md, .factory/skills/qa-backend/SKILL.md). If the diff touches no app code, mark the run INCONCLUSIVE. Write the final report to qa-results/report.md following .factory/skills/qa/REPORT-TEMPLATE.md.'
+          droid exec --auto high "$PROMPT"
+
+      - name: Ensure report exists
+        if: always()
+        continue-on-error: true
+        run: |
+          mkdir -p qa-results
+          if [ ! -f qa-results/report.md ]; then
+            echo "## QA Report" > qa-results/report.md
+            echo "" >> qa-results/report.md
+            echo ":no_entry: QA skill failed to produce a report. Check workflow logs and artifact." >> qa-results/report.md
+          fi
+
+      - name: Upload QA artifacts
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-report-${{ steps.run.outputs.run_id }}
+          path: qa-results/
+          retention-days: 14
+
+      - name: Stop dev servers
+        if: always()
+        continue-on-error: true
+        run: |
+          [ -n "${FRONTEND_PID:-}" ] && kill "${FRONTEND_PID}" || true
+          [ -n "${BACKEND_PID:-}" ]  && kill "${BACKEND_PID}"  || true
+
+      - name: Post / update QA report PR comment
+        if: always() && github.event_name == 'pull_request'
+        continue-on-error: true
+        uses: actions/github-script@v7
+        env:
+          REPORT_PATH: qa-results/report.md
+          RUN_ID: ${{ steps.run.outputs.run_id }}
+          ARTIFACT_NAME: qa-report-${{ steps.run.outputs.run_id }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = process.env.REPORT_PATH;
+            let body = '';
+            if (fs.existsSync(path)) {
+              body = fs.readFileSync(path, 'utf8');
+            } else {
+              body = '## QA Report\n\n:no_entry: No report generated. See workflow logs.';
+            }
+            if (!body.trimStart().startsWith('## QA Report')) {
+              body = '## QA Report\n\n' + body;
+            }
+            const marker = '<!-- qa-report -->';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const artifactNote = `\n\n---\n_Run: \`${process.env.RUN_ID}\` · [Workflow run](${runUrl}) · Artifact: \`${process.env.ARTIFACT_NAME}\` (downloadable for 14 days) · This check is **informational** and does not block merge._`;
+            const finalBody = `${marker}\n${body}${artifactNote}`;
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number, per_page: 100 });
+            const existing = comments.find(c => c.body && c.body.startsWith(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body: finalBody });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body: finalBody });
+            }
+
+      - name: Always succeed (informational check)
+        if: always()
+        run: |
+          echo "QA is configured as informational/non-blocking."
+          echo "QA step outcome: ${{ steps.qa.outcome }}"
+          echo "See PR comment and 'qa-report' artifact for details."

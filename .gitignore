@@ -94,3 +94,8 @@ out/
 # Python
 scripts/__pycache__/
 *.pyc
+
+# QA skill local artifacts
+.factory/skills/qa/.install-progress.yaml
+.factory/skills/qa/.runs/
+qa-results/

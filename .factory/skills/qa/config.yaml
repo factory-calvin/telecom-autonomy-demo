@@ -1,0 +1,107 @@
+project: FactoryFone Admin Portal
+imagemagick: true
+
+environments:
+  local:
+    url: http://localhost:3000
+    backend_url: http://localhost:8080
+    swagger_url: http://localhost:8080/swagger-ui.html
+    auto_start: true
+    start_command: pnpm dev
+    ready_checks:
+      - url: http://localhost:8080/api/health
+        timeout_seconds: 120
+      - url: http://localhost:3000
+        timeout_seconds: 120
+    restrictions: []
+
+default_target: local
+
+auth:
+  method: none
+  provider: none
+  notes: |
+    No authentication in this demo. All pages and API endpoints are public.
+    QA does not need to log in or pass any credentials.
+
+personas:
+  - name: anonymous
+    description: "Anonymous admin browsing the portal. Only persona because auth is disabled."
+    email: null
+    credentials_source: not_applicable
+    test_focus:
+      - "All web pages render with seeded data"
+      - "All read endpoints return 2xx with expected JSON shape"
+    cannot_do: []
+
+apps:
+  web:
+    label: Next.js frontend
+    path_patterns:
+      - "app/**"
+      - "components/**"
+      - "hooks/**"
+      - "lib/**"
+      - "public/**"
+      - "app/globals.css"
+      - "next.config.ts"
+      - "tailwind.config.*"
+      - "postcss.config.*"
+      - "components.json"
+    skill: qa-web
+    test_tool: agent-browser
+    fallback_test_tool: playwright
+    build_command: pnpm dev:frontend
+    base_url_env: local.url
+
+  backend:
+    label: Spring Boot REST API
+    path_patterns:
+      - "backend/**"
+      - "scripts/seed-database.py"
+      - "scripts/requirements.txt"
+    skill: qa-backend
+    test_tool: curl
+    build_command: pnpm dev:backend
+    base_url_env: local.backend_url
+
+feature_flags:
+  provider: none
+  dashboard_url: null
+  how_to_override: "No feature flag system in this project."
+
+integrations:
+  external_services: []
+  database:
+    type: sqlite
+    path: backend/app.db
+    seed_command: pnpm setup:db
+    reset_command: pnpm reset:db
+
+cleanup:
+  auto_cleanup: true
+  strategy: reset-db
+  command: pnpm reset:db
+  run_before_each_qa_session: true
+  instructions: |
+    Run `pnpm reset:db` before each QA session. This deletes backend/app.db and
+    re-seeds it via the Python seeder (scripts/seed-database.py) which uses
+    faker to generate ~500 customers, 600 devices, 220k usage records, etc.
+
+failure_learning: suggest_in_report
+
+screenshots:
+  enabled: true
+  output_dir: .factory/skills/qa/.runs/<run_id>/screenshots
+
+reporting:
+  output_dir: qa-results
+  template: .factory/skills/qa/REPORT-TEMPLATE.md
+  filename: report.md
+  retain_runs: 20
+
+ci:
+  workflow_file: .github/workflows/qa.yml
+  trigger: pull_request_to_main
+  blocking: false
+  artifact_name: qa-report
