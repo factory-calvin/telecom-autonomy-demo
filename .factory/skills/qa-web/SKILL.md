@@ -34,6 +34,8 @@ A reference Playwright runner script may be created at `.factory/skills/qa-web/r
 
 The orchestrator picks flows based on what changed. Do not run all flows blindly.
 
+In addition, **every web flow evaluates the applicable checks in the Accessibility assertions section** below and records each as an individual `checks[]` entry (with the stable `id` shown), so the report shows FAIL on `main` and PASS on the fix PR.
+
 ### web.dashboard
 
 **When to run:** any change under `app/dashboard/**`, `components/dashboard-*`, `hooks/use-dashboard-stats.ts`, or any backend change to `/api/dashboard/*`.
@@ -111,6 +113,23 @@ Pass criteria: cards visible AND chart visible AND no /api 5xx.
 - Ignore: React DevTools warnings, hydration mismatch warnings ONLY if listed in the Known Failure Modes section below.
 - Any other console error → mark the page-level flow as FAIL with the verbatim error message.
 
+## Accessibility assertions (a11y red->green)
+
+These back the `[A11Y]` demo tickets. Evaluate each from the accessibility-tree snapshot
+you already capture for the page; record each as an individual `checks[]` entry using the
+stable `id` shown, so the report flips FAIL (on `main`) -> PASS (on the fix PR).
+
+- **`a11y.action_button_names`** - applies to customers, plans, devices, tickets. Every row action control exposes a descriptive accessible name (matches `/edit/i` and `/delete/i`). A bare `button` with no name is FAIL. (PRO-543)
+- **`a11y.table_semantics`** - applies to customers, plans, devices, tickets. The data table exposes an accessible name (a `<caption>` or `aria-label`) and column headers use `scope="col"`. Missing name or unscoped headers is FAIL. (PRO-545)
+- **`a11y.chart_names`** - applies to dashboard. Every chart exposes a non-empty accessible name (`role="img"` + `aria-label`). An unnamed chart graphic is FAIL. (PRO-544)
+- **`a11y.skip_link_and_main`** - applies to navigation + every page. The first focusable element is a "Skip to main content" link AND the page exposes exactly one `main` landmark. Missing either is FAIL. (PRO-542)
+- **`a11y.page_h1`** - applies to every page. The page exposes exactly one level-1 heading (`<h1>`) with non-empty text. Zero `<h1>` is FAIL. (PRO-546)
+
+Evidence: include the relevant accessibility-tree node(s) in the report's collapsed
+evidence so the before/after diff is visible. When ImageMagick is enabled and a baseline
+screenshot exists, also attach a before/after GIF for `a11y.skip_link_and_main` (focus
+state) and `a11y.page_h1` (visible heading).
+
 ## Per-page evidence contract
 
 For every page navigation:
@@ -119,6 +138,7 @@ For every page navigation:
 2. Capture full-page screenshot to `qa-results/screenshots/web-<slug>.png` (slug = path with `/` → `-`, root = `root`).
 3. Take an accessibility-tree snapshot for inline embedding in the report.
 4. Record a one-line summary of `/api/*` calls (count, statuses).
+5. Evaluate the applicable Accessibility assertions (see section above) and append each as a `checks[]` entry; include the relevant before/after a11y-tree node(s) in the evidence.
 
 ## Output
 
