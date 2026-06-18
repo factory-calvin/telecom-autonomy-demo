@@ -164,10 +164,11 @@ jobs:
         continue-on-error: true
         timeout-minutes: 18
         env:
+          FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
           CI: "true"
           QA_RUN_ID: ${{ steps.run.outputs.run_id }}
         run: |
-          export PATH="$HOME/.factory/bin:$PATH"
+          export PATH="$HOME/.local/bin:$HOME/.factory/bin:$PATH"
           PROMPT='Run the qa skill end-to-end against the locally-running stack. You are running in a non-interactive CI environment. There is NO human available. Do NOT use AskUser, do NOT wait for confirmations, do NOT pause for input. Frontend is at http://localhost:3000 and backend is at http://localhost:8080. Both servers are already running and healthy. Analyze the git diff between origin/main and HEAD to determine which apps are affected, then run only the relevant flows from the matching sub-skills (.factory/skills/qa-web/SKILL.md, .factory/skills/qa-backend/SKILL.md). If the diff touches no app code, mark the run INCONCLUSIVE. Write the final report to qa-results/report.md following .factory/skills/qa/REPORT-TEMPLATE.md.'
           droid exec --auto high "$PROMPT"
 

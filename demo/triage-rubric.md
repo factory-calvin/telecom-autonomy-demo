@@ -57,7 +57,10 @@ The rubric is deliberately conservative: when in doubt, route to a human.
    }
    ```
 
-2. Then set the ticket status:
+2. Then apply the matching Linear label (the primary hand-off signal):
+   - `agent-ready` issues get the **`agent-ready`** label
+   - `needs-human` issues get the **`needs-human`** label
+3. Move the ticket as a secondary signal:
    - `agent-ready` -> **Todo**
    - `needs-human` -> leave in **Backlog**
 

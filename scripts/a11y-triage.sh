@@ -3,7 +3,8 @@
 #
 # Reads every [A11Y] ticket in Backlog (Linear team: Assembly Demos / key PRO),
 # classifies each as agent-ready or needs-human using demo/triage-rubric.md, posts a
-# structured JSON verdict comment, and moves agent-ready tickets to Todo.
+# structured JSON verdict comment, applies the agent-ready/needs-human label, and moves
+# agent-ready tickets to Todo.
 #
 # Read-only on the repo. Writes only to Linear (via MCP).
 #
@@ -12,7 +13,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-export PATH="$HOME/.factory/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.factory/bin:$PATH"
 cd "$ROOT"
 
 RUBRIC="demo/triage-rubric.md"
@@ -28,9 +29,9 @@ for arg in "$@"; do
 done
 
 if [ "$DRY_RUN" = "1" ]; then
-  ACTION='DRY RUN: do NOT modify Linear. Do NOT post comments and do NOT change any issue status. For each issue, print to stdout the JSON verdict block you WOULD post (per demo/triage-rubric.md).'
+  ACTION='DRY RUN: do NOT modify Linear. Do NOT post comments, do NOT apply labels, and do NOT change any issue status. For each issue, print to stdout the JSON verdict block you WOULD post and the label you WOULD apply (agent-ready or needs-human), per demo/triage-rubric.md.'
 else
-  ACTION='For each issue, post the JSON verdict block (per demo/triage-rubric.md) as a Linear comment, then set its status: agent-ready -> "Todo"; needs-human -> leave "Backlog".'
+  ACTION='For each issue, post the JSON verdict block (per demo/triage-rubric.md) as a Linear comment, then apply the matching Linear label (agent-ready issues get the "agent-ready" label; needs-human issues get the "needs-human" label) and set status (agent-ready -> "Todo"; needs-human -> leave "Backlog").'
 fi
 
 read -r -d '' PROMPT <<EOF || true
