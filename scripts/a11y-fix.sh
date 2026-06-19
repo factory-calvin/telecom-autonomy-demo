@@ -7,14 +7,14 @@
 #
 # Prereqs: droid CLI on PATH; Linear MCP configured; gh authenticated.
 # Usage:
-#   ./scripts/a11y-fix.sh                 # default 5 agent-ready tickets
+#   ./scripts/a11y-fix.sh                 # discovers tickets labeled agent-ready in Linear
 #   ./scripts/a11y-fix.sh PRO-543         # a single ticket (focused live demo)
 #   A11Y_TICKETS="PRO-543 PRO-544" ./scripts/a11y-fix.sh
 # Env: DROID_AUTO (default: high) - autonomy level for droid exec.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-export PATH="$HOME/.factory/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.factory/bin:$PATH"
 cd "$ROOT"
 
 AUTONOMY="${DROID_AUTO:-high}"
@@ -29,11 +29,31 @@ for arg in "$@"; do
   esac
 done
 
+DEFAULT_TICKETS="PRO-543 PRO-544 PRO-545 PRO-546 PRO-542"
+
 if [ "${#ARGS[@]}" -gt 0 ]; then
   TICKETS=("${ARGS[@]}")
-else
+elif [ -n "${A11Y_TICKETS:-}" ]; then
   # shellcheck disable=SC2206
-  TICKETS=(${A11Y_TICKETS:-PRO-543 PRO-544 PRO-545 PRO-546 PRO-542})
+  TICKETS=(${A11Y_TICKETS})
+elif [ "$DRY_RUN" = "1" ]; then
+  # shellcheck disable=SC2206
+  TICKETS=(${DEFAULT_TICKETS})
+else
+  echo ">>> Discovering [A11Y] tickets labeled 'agent-ready' in Linear (team PRO)..."
+  TICKETS=()
+  while IFS= read -r _line; do
+    [ -n "$_line" ] && TICKETS+=("$_line")
+  done < <(
+    droid exec --auto low 'Using the Linear MCP tools, list issues in team "Assembly Demos" (key PRO) that have the label "agent-ready" and whose title starts with "[A11Y]". Output ONLY their identifiers, one per line (for example PRO-543), between a line "===IDS START===" and a line "===IDS END===". No other text.' 2>/dev/null \
+      | awk '/===IDS START===/{f=1;next} /===IDS END===/{f=0} f' \
+      | grep -Eo 'PRO-[0-9]+'
+  )
+  if [ "${#TICKETS[@]}" -eq 0 ]; then
+    echo ">>> No agent-ready tickets discovered; falling back to the default set."
+    # shellcheck disable=SC2206
+    TICKETS=(${DEFAULT_TICKETS})
+  fi
 fi
 
 if [ "$DRY_RUN" = "1" ]; then

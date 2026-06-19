@@ -8,14 +8,14 @@ All issues are real and grounded in the codebase. No invented problems.
 
 ## The two commands
 
-| Step      | Script                   | What it does                                                                                                                                                                      |
-| --------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Triage | `scripts/a11y-triage.sh` | Reads every `[A11Y]` Backlog ticket, applies `demo/triage-rubric.md`, posts a JSON verdict comment, and moves agent-ready tickets to **Todo** (needs-human stays in **Backlog**). |
-| 2. Fix    | `scripts/a11y-fix.sh`    | For each agent-ready ticket, opens **one branch + one PR** with the minimal fix. The PR triggers `.github/workflows/qa.yml`.                                                      |
+| Step      | Script                   | What it does                                                                                                                                                                                                                     |
+| --------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Triage | `scripts/a11y-triage.sh` | Reads every `[A11Y]` Backlog ticket, applies `demo/triage-rubric.md`, posts a JSON verdict comment, applies the `agent-ready`/`needs-human` label, and moves agent-ready tickets to **Todo** (needs-human stays in **Backlog**). |
+| 2. Fix    | `scripts/a11y-fix.sh`    | For each ticket labeled `agent-ready`, opens **one branch + one PR** with the minimal fix. The PR triggers `.github/workflows/qa.yml`.                                                                                           |
 
 Both call `droid exec` headlessly. Prerequisites:
 
-- Factory `droid` CLI on PATH (`$HOME/.factory/bin`).
+- Factory `droid` CLI on PATH (`$HOME/.local/bin` or `$HOME/.factory/bin`).
 - **Linear MCP** configured in your droid config (the scripts read/update tickets via MCP).
 - `gh` authenticated for the fix step (PR creation).
 
