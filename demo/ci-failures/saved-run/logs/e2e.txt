@@ -1,0 +1,36 @@
+##[group]Run pnpm test:e2e
+Runner: ubuntu-latest, Playwright 1.57.0, chromium
+
+Running 8 tests using 1 worker
+
+  ✓  1 [chromium] > api-health.spec.ts:4:3 > API Health > backend health endpoint should respond (312ms)
+  ✓  2 [chromium] > api-health.spec.ts:9:3 > API Health > customers API should respond (188ms)
+  ✗  3 [chromium] > dashboard-revenue.spec.ts:23:3 > Dashboard revenue aggregates > monthly revenue counts only active subscribers (447ms)
+
+    Error: expect(received).toBeCloseTo(expected, precision)
+
+    Expected: 18240.55
+    Received: 24118.9
+    Expected precision:    2
+    Expected difference: < 0.005
+    Received difference:  5878.35
+
+      42 |     expect(Number(stats.monthly_revenue)).toBeCloseTo(expected, 2)
+         |                                           ^
+        at e2e/dashboard-revenue.spec.ts:42:43
+
+  ✓  4 [chromium] > dashboard-revenue.spec.ts:45:3 > Dashboard revenue aggregates > active customer count matches the customer list (203ms)
+  ✗  5 [chromium] > dashboard-revenue.spec.ts:58:3 > Dashboard revenue aggregates > revenue by plan excludes plans with no active subscribers (231ms)
+
+    Error: expect(received).toBeTruthy()
+
+    Received: false
+
+      68 |       expect(plansWithActive.has(row.name)).toBeTruthy()
+         |                                             ^
+        at e2e/dashboard-revenue.spec.ts:68:45
+
+  2 failed
+  6 passed (4.1s)
+
+##[error]Process completed with exit code 1.

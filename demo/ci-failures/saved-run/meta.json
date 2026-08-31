@@ -1,0 +1,13 @@
+{
+  "mode": "single",
+  "repo": "Factory-Academy/Telecom-Demo-NextJS-Springboot",
+  "workflow": "CI",
+  "run_id": "saved-run",
+  "run_url": "",
+  "pr_number": null,
+  "head_sha": "",
+  "head_ref": "demo/ci-fault-f1-saved",
+  "base_ref": "main",
+  "failed_jobs": ["Backend", "E2E Tests"],
+  "ground_truth": null
+}
