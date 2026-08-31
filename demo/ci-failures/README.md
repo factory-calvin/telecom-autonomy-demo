@@ -44,8 +44,10 @@ Expected verdict: `product-code` → `agent-fix-now`. This is the cluster the de
 
 ### F2 · Plan API renames `monthly_price`
 
-The `PlanResponse` record renames one field. Backend tests fail, the e2e cross-check
-fails because the price reads as `undefined`, and the frontend would render `NaN`.
+The `PlanResponse` record renames one field. Failures land on both sides of the
+interface: backend tests that assert the old key, the e2e revenue cross-check because
+every price now reads as `undefined`, and two plans-page tests because the table never
+renders a price at all.
 
 Expected verdict: `contract-drift` → `needs-human`. Which side of the interface is
 correct is a product decision. The agent must state the tradeoff and stop.

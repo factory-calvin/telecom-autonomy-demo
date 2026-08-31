@@ -11,7 +11,7 @@ Contents:
 | `junit/backend-*.xml`  | The real Gradle JUnit output: 3 failures in `DashboardControllerTest` |
 | `junit/frontend-*.xml` | The real vitest output: 24 passing, which is the correct outcome      |
 | `logs/backend.txt`     | Trimmed Gradle job log                                                |
-| `logs/e2e.txt`         | Playwright job log with the two failing cross-check assertions        |
+| `logs/e2e.txt`         | Playwright job log: the revenue cross-check fails, 19 others pass     |
 
 ## Replaying it
 
@@ -24,7 +24,7 @@ or the agent will correctly report that the source looks fine:
 python3 scripts/ci-faults.py revert F1       # put it back
 ```
 
-Expected verdict: 5 failures across two jobs collapse into **one** cluster, classified
+Expected verdict: 4 failures across two jobs collapse into **one** cluster, classified
 `product-code`, routed `agent-fix-now`, naming
 `backend/src/main/java/com/example/demo/controller/DashboardController.java`.
 
