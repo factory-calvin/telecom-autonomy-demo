@@ -6,7 +6,12 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [["html", { open: "never" }], ["list"]],
+  // The JUnit report is what CI failure triage parses to group failures by root cause.
+  reporter: [
+    ["html", { open: "never" }],
+    ["list"],
+    ["junit", { outputFile: "test-results/e2e-junit.xml" }],
+  ],
   use: {
     baseURL: "http://localhost:3000",
     trace: "on-first-retry",
