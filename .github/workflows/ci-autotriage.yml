@@ -247,11 +247,14 @@ jobs:
     name: Ship stacked fix PR
     needs: triage
     # Opt in explicitly. Without vars.CI_AUTOFIX == 'on' this job never runs, so triage
-    # stays a read-only reviewer until someone turns fixing on.
+    # stays a read-only reviewer until someone turns fixing on. A manual run additionally
+    # has to ask for fixes, so dispatching a triage-only run cannot open a PR behind your
+    # back.
     if: >
       needs.triage.outputs.has_autofix == 'true' &&
       needs.triage.outputs.pr_number != '' &&
-      vars.CI_AUTOFIX == 'on'
+      vars.CI_AUTOFIX == 'on' &&
+      (github.event_name != 'workflow_dispatch' || inputs.fix)
     runs-on: ubuntu-latest
     timeout-minutes: 25
     permissions:
