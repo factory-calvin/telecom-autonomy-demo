@@ -74,7 +74,7 @@ Route `needs-human` if **any** of these are true:
 - A product, copy, brand, or UX decision is required.
 - The fix crosses an interface boundary and something upstream may depend on the old shape.
 - The fix needs a new dependency, an infrastructure change, or a cross-cutting refactor.
-- Confidence is below 0.75.
+- Confidence is below 0.75 and the class does not already pin a route.
 
 `infra` always routes to `platform-team`. `flake` always routes to `quarantine-and-retry`.
 Neither ever produces a production-source change, no matter how obvious a nearby bug looks.
@@ -112,7 +112,10 @@ One object per cluster, conforming to `.factory/skills/ci-triage/verdict.schema.
 Rules for the fields:
 
 - `confidence` is your probability that the classification **and** the proposed fix are
-  correct. Below 0.75 forces `needs-human`.
+  correct. Below 0.75 rules out `agent-fix-now`. For `product-code`, `test-code`,
+  `contract-drift` and `hygiene` that leaves `needs-human`. `infra` and `flake` keep their
+  own routes, which are not auto-fixes to begin with, so a low-confidence infra cluster
+  still goes to the platform team rather than becoming a routing contradiction.
 - `root_cause` names the symbol and the mistake. "Test failed" is not a root cause.
 - `verification` must be a command that actually exists in this repo and that fails
   before the fix and passes after it.

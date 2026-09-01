@@ -84,9 +84,11 @@
             "then": { "properties": { "route": { "const": "quarantine-and-retry" } } }
           },
           {
-            "comment": "low confidence forces a human",
+            "comment": "Low confidence rules out auto-fixing, but it does not override the class. Forcing needs-human here would contradict the infra and flake rules above and make a low-confidence infra cluster impossible to express.",
             "if": { "properties": { "confidence": { "exclusiveMaximum": 0.75 } } },
-            "then": { "properties": { "route": { "const": "needs-human" } } }
+            "then": {
+              "properties": { "route": { "not": { "const": "agent-fix-now" } } }
+            }
           },
           {
             "comment": "anything not auto-fixed must say what the human decides",

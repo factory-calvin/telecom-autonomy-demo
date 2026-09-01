@@ -104,7 +104,8 @@ rubric step 4.
 Guardrails that override any inference:
 
 - `infra` and `flake` never touch production source.
-- Confidence below 0.75 forces `needs-human`.
+- Confidence below 0.75 rules out `agent-fix-now`. It does not override the class: a
+  low-confidence `infra` cluster still routes to `platform-team`, not `needs-human`.
 - Never invent a `verification` command. Run it and confirm it fails now, or leave the
   cluster as `needs-human`. Commands available in this repo:
   - `cd backend && ./gradlew test --tests '*<ClassName>*'`

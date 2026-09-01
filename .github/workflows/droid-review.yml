@@ -6,7 +6,11 @@ on:
 
 jobs:
   droid-review:
-    if: github.event.pull_request.draft == false
+    # Forked PRs cannot read FACTORY_API_KEY, so the job would fail on every push from a
+    # fork rather than skipping.
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       contents: write
