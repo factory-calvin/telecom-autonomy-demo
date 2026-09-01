@@ -9,6 +9,7 @@ Contents:
 | ---------------------- | --------------------------------------------------------------------- |
 | `meta.json`            | Run context, shaped as if a `CI` run on a PR branch had failed        |
 | `junit/backend-*.xml`  | The real Gradle JUnit output: 3 failures in `DashboardControllerTest` |
+| `junit/e2e-junit.xml`  | The real Playwright output: 20 tests, 1 failing revenue cross-check   |
 | `junit/frontend-*.xml` | The real vitest output: 24 passing, which is the correct outcome      |
 | `logs/backend.txt`     | Trimmed Gradle job log                                                |
 | `logs/e2e.txt`         | Playwright job log: the revenue cross-check fails, 19 others pass     |

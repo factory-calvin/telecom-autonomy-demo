@@ -188,7 +188,7 @@ print(json.dumps([j["name"] for j in jobs if j.get("conclusion") == "failure"]))
     echo "Downloading test-result artifacts ..."
     ARTIFACT_DIR="$BUNDLE/artifacts"
     mkdir -p "$ARTIFACT_DIR"
-    for name in frontend-test-results backend-test-results playwright-report; do
+    for name in frontend-test-results backend-test-results e2e-test-results playwright-report; do
       gh run download "$RUN_ID" -n "$name" -D "$ARTIFACT_DIR/$name" > /dev/null 2>&1 \
         || echo "(artifact $name not present)"
     done
