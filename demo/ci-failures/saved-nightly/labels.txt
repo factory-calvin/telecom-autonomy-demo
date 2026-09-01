@@ -1,0 +1,8 @@
+ci:product-code
+ci:test-code
+ci:contract-drift
+ci:infra
+ci:flake
+ci:hygiene
+agent-fix-ready
+ci:needs-human

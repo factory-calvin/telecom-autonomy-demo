@@ -15,8 +15,8 @@ tests a night.
 | ----------------------------------------------------------------------- | ----------------------------------------------------------- |
 | "infra issue or a code issue… give it to product or fix it in the test" | A six-class taxonomy in a written rubric, applied live      |
 | "half a million tests, hundreds or thousands of failures"               | ~110 failures collapsing into 10 root causes                |
-| "I don't know how good is defined here"                                 | A scorecard against a known answer key                      |
-| "full visibility into cost, token usage"                                | Tokens, model, wall clock, and cost in every report         |
+| "I don't know how good is defined here"                                 | A measured scorecard against a known answer key             |
+| "full visibility into cost, token usage"                                | Model, tokens, credits, and wall clock in every report      |
 | "developers still have ownership"                                       | A stacked fix PR behind a label gate, never a silent push   |
 | "would agents run in our cloud or your cloud"                           | The same skill on a runner and on a laptop, no vendor cloud |
 
@@ -114,19 +114,35 @@ is the source of truth instead of guessing.
 
 ## Act 3 · Nightly scale (~4 min)
 
+**Do not run this live.** The full corpus took 57 minutes. Walk the banked run instead:
+
 ```bash
-gh workflow run "Nightly Triage"
-gh run watch
+open demo/ci-failures/saved-nightly/score.md      # and report.md
 ```
 
-Walk the run summary:
+If you want something moving on screen, kick off a reduced run in the background before the
+call and come back to it:
 
-- **Funnel:** ~2,000 tests, ~110 failures, 10 root causes. Point at the two clusters that
-  span multiple suites, and the flake cluster where one retry passed.
+```bash
+gh workflow run "Nightly Triage" -f tests=300
+```
+
+Walk the report and scorecard:
+
+- **Funnel:** 2,000 tests, 106 failures, 10 root causes. Point at c1, which merged three
+  suites across two packages, and at the flake clusters where 5 of 19 retries passed.
 - **Routing table:** what a person actually has to look at tomorrow morning.
-- **Scorecard:** classification and routing accuracy against the generated answer key,
-  and the false-autofix count. Lead with that last number.
-- **Run cost:** model, tokens, wall clock, dollars.
+- **Scorecard:** 10/10 classification, 10/10 root causes recovered, 0 clusters split or
+  merged, and **0 false auto-fixes**. Lead with that last number.
+- **The 6/10 routing, said out loud before they find it.** Every miss is `needs-human`
+  where the key says `agent-fix-now`, so every miss costs a little human time and none
+  ships a wrong change. Three of the four happen because the corpus names files this
+  checkout does not contain, so nothing could be verified and the guardrail fired. The run
+  diagnoses that itself in `score.md`.
+- **Calibration:** the four misrouted clusters carry the four lowest confidences in the
+  run. It knew where it was unsure.
+- **Run cost:** model, tokens, credits, wall clock. This run: 53k in, 48k out, 1.5M
+  credits, 57 minutes.
 
 The corpus is deterministic, so the same seed reproduces the same run. That is the opening
 to talk about evaluating an agent the way they evaluate a service.
@@ -191,3 +207,8 @@ and on the remote, reverts any applied fault, and clears triage output. Run
 5. **`droid exec` output is not deterministic.** Cluster ordering and wording vary between
    runs. The classifications and routes are what should be stable; rehearse at least once
    so nothing in the narration depends on exact phrasing.
+6. **The nightly corpus names files this repo does not have.** It is a synthetic corpus
+   describing a much larger codebase, so triage cannot run a verification command against
+   most clusters and correctly falls back to `needs-human`. It costs routing accuracy on
+   the scorecard and it is why the banked run reads 6/10. Fixing it means pointing the
+   fixture's root causes at real files in this repo.
