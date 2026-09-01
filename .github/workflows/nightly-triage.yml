@@ -1,0 +1,162 @@
+name: Nightly Triage
+
+# Batch triage at the shape (not the volume) of a real nightly suite: ~2,000 tests, ~110
+# failures, and a handful of root causes hiding inside them. The corpus is generated
+# deterministically by scripts/ci-nightly-fixture.py, which also writes an answer key, so
+# every run is scored rather than just demonstrated.
+#
+# Nothing here touches product code. Triage and report only.
+
+on:
+  schedule:
+    # 03:30 UTC, after a hypothetical nightly suite would have finished.
+    - cron: "30 3 * * *"
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: "Fixture seed (same seed = same corpus)"
+        default: "20260315"
+      tests:
+        description: "Approximate corpus size"
+        default: "2000"
+
+concurrency:
+  group: nightly-triage
+  cancel-in-progress: true
+
+jobs:
+  triage:
+    name: Batch triage with scorecard
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Node deps
+        run: pnpm install
+
+      - name: Generate the nightly corpus
+        id: fixture
+        env:
+          SEED: ${{ inputs.seed || '20260315' }}
+          TESTS: ${{ inputs.tests || '2000' }}
+        run: |
+          set -euo pipefail
+          python3 scripts/ci-nightly-fixture.py --out nightly-triage --seed "$SEED" --tests "$TESTS"
+          echo "seed=${SEED}" >> "$GITHUB_OUTPUT"
+
+      - name: Install droid CLI
+        # Same audited pattern as the other workflows: download, log size and SHA-256,
+        # then execute. Set EXPECTED_SHA256 to pin a known-good installer.
+        env:
+          EXPECTED_SHA256: ""
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 --retry-delay 5 https://app.factory.ai/cli -o /tmp/factory-installer.sh
+          INSTALLER_SHA="$(sha256sum /tmp/factory-installer.sh | awk '{print $1}')"
+          INSTALLER_BYTES="$(wc -c < /tmp/factory-installer.sh)"
+          echo "Installer SHA-256: ${INSTALLER_SHA}"
+          echo "Installer size:    ${INSTALLER_BYTES} bytes"
+          if [ -n "${EXPECTED_SHA256}" ] && [ "${INSTALLER_SHA}" != "${EXPECTED_SHA256}" ]; then
+            echo "::error::droid installer SHA-256 mismatch"
+            exit 1
+          fi
+          if [ "${INSTALLER_BYTES}" -lt 200 ]; then
+            echo "::error::droid installer is suspiciously small"
+            exit 1
+          fi
+          sh /tmp/factory-installer.sh
+
+      - name: Triage the corpus
+        id: triage
+        timeout-minutes: 22
+        env:
+          FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
+          CI: "true"
+        run: |
+          export PATH="$HOME/.local/bin:$HOME/.factory/bin:$PATH"
+          ./scripts/ci-triage.sh --local nightly-triage/bundle --mode batch
+
+      - name: Collect the report
+        if: always()
+        run: |
+          set -uo pipefail
+          mkdir -p nightly-triage/out
+          for f in report.md verdicts.json labels.txt score.md; do
+            [ -f "ci-triage/$f" ] && cp "ci-triage/$f" "nightly-triage/out/$f"
+          done
+          if [ ! -f nightly-triage/out/report.md ]; then
+            {
+              echo "# Nightly Triage"
+              echo
+              echo ":no_entry: Triage produced no report. See the workflow log and the artifact."
+            } > nightly-triage/out/report.md
+          fi
+
+      - name: Publish to the run summary
+        if: always()
+        run: |
+          set -uo pipefail
+          {
+            echo "## Nightly triage (seed ${{ steps.fixture.outputs.seed }})"
+            echo
+            if [ -f ci-triage/verdicts.json ]; then
+              jq -r '
+                "**Funnel:** \(.funnel.tests_run) tests -> \(.funnel.failures) failures -> \(.funnel.clusters) clusters",
+                "",
+                "| Class | Clusters | Failures |",
+                "| ----- | -------- | -------- |",
+                (
+                  [.clusters[] | {c: .classification, n: (.failing_tests | length)}]
+                  | group_by(.c)
+                  | map("| `\(.[0].c)` | \(length) | \([.[].n] | add) |")
+                  | .[]
+                ),
+                "",
+                (if .economics then
+                  "**Run cost:** \(.economics.model // "unknown"), " +
+                  "\(.economics.input_tokens // 0) in / \(.economics.output_tokens // 0) out, " +
+                  "\(.economics.factory_credits // 0) credits, " +
+                  "\(.economics.wall_clock_seconds // 0)s"
+                 else "" end)
+              ' ci-triage/verdicts.json
+            else
+              echo "No verdicts.json produced."
+            fi
+            echo
+            if [ -f ci-triage/score.md ]; then
+              echo "### Scorecard"
+              echo
+              cat ci-triage/score.md
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the nightly triage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          # Includes the generated corpus, the answer key, and the triage output, so a run
+          # can be replayed offline with:
+          #   ./scripts/ci-triage.sh --local nightly-triage/bundle --mode batch
+          name: nightly-triage-${{ steps.fixture.outputs.seed }}-${{ github.run_id }}
+          path: |
+            nightly-triage/
+            ci-triage/
+          retention-days: 30

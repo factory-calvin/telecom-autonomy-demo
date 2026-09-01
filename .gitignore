@@ -99,3 +99,7 @@ scripts/__pycache__/
 .factory/skills/qa/.install-progress.yaml
 .factory/skills/qa/.runs/
 qa-results/
+
+# CI triage skill output (generated per run; the saved replay bundle is committed)
+/ci-triage/
+/nightly-triage/

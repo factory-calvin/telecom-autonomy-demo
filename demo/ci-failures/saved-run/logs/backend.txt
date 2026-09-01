@@ -1,0 +1,53 @@
+##[group]Run ./gradlew test jacocoTestReport
+Runner: ubuntu-latest, Java 25 (temurin), Gradle 9.2.1
+
+> Task :compileJava
+> Task :processResources UP-TO-DATE
+> Task :classes
+> Task :compileTestJava
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses
+> Task :test
+PlanControllerTest > deletePlanReturnsNotFoundWhenMissing() PASSED
+PlanControllerTest > updatePlanLeavesActiveFlagAloneWhenOmitted() PASSED
+PlanControllerTest > deletePlanReturnsNoContentWhenPresent() PASSED
+PlanControllerTest > getPlanReturnsNotFoundForUnknownId() PASSED
+PlanControllerTest > getAllPlansReturnsSnakeCasePayload() PASSED
+PlanControllerTest > getActivePlansDelegatesToActiveOnlyQuery() PASSED
+PlanControllerTest > createPlanPersistsRequestFields() PASSED
+> Task :test
+DemoApplicationTests > contextLoads() PASSED
+CustomerControllerTest > createCustomerStartsActiveWithTheGivenBalance() PASSED
+CustomerControllerTest > deleteCustomerReturnsNotFoundWhenMissing() PASSED
+CustomerControllerTest > updateCustomerAppliesAStatusTransition() PASSED
+CustomerControllerTest > createCustomerRejectsAnUnknownPlan() PASSED
+CustomerControllerTest > deleteCustomerReturnsNoContentWhenPresent() PASSED
+CustomerControllerTest > getAllCustomersFlattensPlanOntoTheResponse() PASSED
+CustomerControllerTest > updateCustomerReturnsNotFoundForUnknownId() PASSED
+CustomerControllerTest > getAllCustomersToleratesAMissingPlan() PASSED
+CustomerControllerTest > getCustomerReturnsNotFoundForUnknownId() PASSED
+DashboardControllerTest > devicesByStatusReturnsStatusNames() PASSED
+DashboardControllerTest > statsRevenueExcludesNonActiveCustomers() FAILED
+    java.lang.AssertionError: JSON path "$.monthly_revenue" expected:<80.0> but was:<140.0>
+        at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+        at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+        at com.example.demo.controller.DashboardControllerTest.statsRevenueExcludesNonActiveCustomers(DashboardControllerTest.java:80)
+DashboardControllerTest > statsReturnsActiveCustomerCountAndMonthlyRevenue() FAILED
+    java.lang.AssertionError: JSON path "$.monthly_revenue" expected:<80.0> but was:<140.0>
+        at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+        at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+        at com.example.demo.controller.DashboardControllerTest.statsReturnsActiveCustomerCountAndMonthlyRevenue(DashboardControllerTest.java:71)
+DashboardControllerTest > customersByPlanReturnsOneEntryPerPlan() PASSED
+DashboardControllerTest > revenueByPlanMultipliesPlanPriceByActiveCustomerCount() PASSED
+DashboardControllerTest > statsIgnoresActiveCustomersWithoutAPlan() PASSED
+DashboardControllerTest > ticketsByStatusReturnsStatusNames() PASSED
+DashboardControllerTest > revenueByPlanOnlyIncludesPlansWithActiveCustomers() FAILED
+    java.lang.AssertionError: JSON path "$.length()" expected:<2> but was:<3>
+        at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+        at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+        at com.example.demo.controller.DashboardControllerTest.revenueByPlanOnlyIncludesPlansWithActiveCustomers(DashboardControllerTest.java:98)
+> Task :test FAILED
+Test Results: FAILURE (25 tests, 22 passed, 3 failed, 0 skipped)
+BUILD FAILED in 13s
+
+##[error]Process completed with exit code 1.

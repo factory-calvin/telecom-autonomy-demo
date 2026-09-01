@@ -1,0 +1,49 @@
+##[group]Run pnpm test:e2e
+Runner: ubuntu-latest, Playwright 1.57.0, chromium
+
+Running 20 tests using 9 workers
+
+  ✓   8 [chromium] › e2e/api-health.spec.ts:4:7 › API Health › backend health endpoint should respond (74ms)
+  ✓   1 [chromium] › e2e/api-health.spec.ts:16:7 › API Health › plans API should respond (165ms)
+  ✓   7 [chromium] › e2e/api-health.spec.ts:9:7 › API Health › customers API should respond (195ms)
+  ✓   6 [chromium] › e2e/api-health.spec.ts:30:7 › API Health › dashboard stats API should respond (206ms)
+  ✓  11 [chromium] › e2e/dashboard-revenue.spec.ts:43:7 › Dashboard revenue aggregates › active customer count matches the customer list (108ms)
+  ✓  12 [chromium] › e2e/dashboard-revenue.spec.ts:56:7 › Dashboard revenue aggregates › revenue by plan excludes plans with no active subscribers (100ms)
+  ✘  10 [chromium] › e2e/dashboard-revenue.spec.ts:21:7 › Dashboard revenue aggregates › monthly revenue counts only active subscribers (109ms)
+  ✓   3 [chromium] › e2e/api-health.spec.ts:23:7 › API Health › devices API should respond (294ms)
+  ✓  13 [chromium] › e2e/dashboard.spec.ts:8:7 › Dashboard › should display dashboard KPI cards (2.1s)
+  ✓  15 [chromium] › e2e/dashboard.spec.ts:23:7 › Dashboard › should display charts (3.0s)
+  ✓  14 [chromium] › e2e/dashboard.spec.ts:15:7 › Dashboard › should load dashboard data from API (3.1s)
+  ✓   2 [chromium] › e2e/customers.spec.ts:32:7 › Customers Page › should have add customer button (3.8s)
+  ✓   9 [chromium] › e2e/customers.spec.ts:8:7 › Customers Page › should display customers table (4.1s)
+  ✓   4 [chromium] › e2e/customers.spec.ts:25:7 › Customers Page › should display customer data in table rows (4.2s)
+  ✓   5 [chromium] › e2e/customers.spec.ts:15:7 › Customers Page › should load customers from API (4.6s)
+  ✓  18 [chromium] › e2e/plans.spec.ts:8:7 › Plans Page › should display plans table (2.7s)
+  ✓  20 [chromium] › e2e/plans.spec.ts:25:7 › Plans Page › should display plan details including price (1.8s)
+  ✓  19 [chromium] › e2e/plans.spec.ts:15:7 › Plans Page › should load plans from API (2.0s)
+  ✓  17 [chromium] › e2e/navigation.spec.ts:27:7 › Navigation › sidebar navigation works correctly (5.7s)
+  ✓  16 [chromium] › e2e/navigation.spec.ts:4:7 › Navigation › should navigate to all main pages (6.4s)
+
+
+  1) [chromium] › e2e/dashboard-revenue.spec.ts:21:7 › Dashboard revenue aggregates › monthly revenue counts only active subscribers
+
+    Error: expect(received).toBeCloseTo(expected, precision)
+
+    Expected: 31331.010000000264
+    Received: 39330
+
+    Expected precision:    2
+    Expected difference: < 0.005
+    Received difference:   7998.989999999736
+
+      38 |       .reduce((sum, c) => sum + (priceByPlan.get(c.plan_name as string) ?? 0), 0)
+      39 |
+    > 40 |     expect(Number(stats.monthly_revenue)).toBeCloseTo(expected, 2)
+         |                                           ^
+        at e2e/dashboard-revenue.spec.ts:40:43
+
+  1 failed
+    [chromium] › e2e/dashboard-revenue.spec.ts:21:7 › Dashboard revenue aggregates › monthly revenue counts only active subscribers
+  19 passed (24.4s)
+
+##[error]Process completed with exit code 1.

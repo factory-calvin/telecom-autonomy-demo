@@ -1,0 +1,383 @@
+name: CI Auto-Triage
+
+# Reacts to a failed CI run on a pull request: clusters the failures by root cause,
+# classifies each cluster per demo/ci-triage-rubric.md, comments the verdict on the PR,
+# and (when enabled) opens a stacked fix PR for the clusters it is allowed to fix.
+#
+# Both jobs shell out to scripts/ci-triage.sh, the same entry point used locally, so a
+# laptop and this runner produce the same verdicts from the same evidence.
+#
+# Requirements:
+#   secrets.FACTORY_API_KEY      droid CLI auth
+#   secrets.CI_AUTOFIX_TOKEN     PAT or app token used to push the fix branch and open
+#                                the stacked PR. The default GITHUB_TOKEN cannot be used
+#                                here: PRs it creates do not trigger CI, so the fix PR
+#                                would never turn green.
+#   vars.CI_AUTOFIX              set to "on" to enable the fix job at all
+#
+# Note: workflow_run always executes the copy of this file on the default branch, which
+# is why this has to be merged rather than demoed from a feature branch.
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "CI run id to triage"
+        required: true
+      fix:
+        description: "Also ship fixes for agent-fix-now clusters"
+        type: boolean
+        default: false
+
+concurrency:
+  group: ci-triage-${{ github.event.workflow_run.id || inputs.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  triage:
+    name: Triage failures
+    # Forked PRs are skipped on purpose: this job checks out PR code and holds secrets.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'failure' &&
+       github.event.workflow_run.event == 'pull_request' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      actions: read
+    outputs:
+      has_autofix: ${{ steps.verdict.outputs.has_autofix }}
+      pr_number: ${{ steps.ctx.outputs.pr_number }}
+      head_ref: ${{ steps.ctx.outputs.head_ref }}
+      head_sha: ${{ steps.ctx.outputs.head_sha }}
+      summary: ${{ steps.verdict.outputs.summary }}
+    steps:
+      - name: Resolve the failed run
+        id: ctx
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id || inputs.run_id }}
+        run: |
+          set -euo pipefail
+          echo "run_id=${RUN_ID}" >> "$GITHUB_OUTPUT"
+
+          RUN_JSON="$(gh api "repos/${GH_REPO}/actions/runs/${RUN_ID}")"
+          HEAD_SHA="$(printf '%s' "$RUN_JSON" | jq -r '.head_sha')"
+          HEAD_REF="$(printf '%s' "$RUN_JSON" | jq -r '.head_branch')"
+          PR_NUMBER="$(printf '%s' "$RUN_JSON" | jq -r '.pull_requests[0].number // empty')"
+
+          # workflow_run does not always populate pull_requests, so fall back to a search.
+          if [ -z "$PR_NUMBER" ]; then
+            PR_NUMBER="$(gh pr list --repo "$GH_REPO" --head "$HEAD_REF" --state open \
+              --json number --jq '.[0].number // empty' || true)"
+          fi
+
+          echo "head_sha=${HEAD_SHA}" >> "$GITHUB_OUTPUT"
+          echo "head_ref=${HEAD_REF}" >> "$GITHUB_OUTPUT"
+          echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "Triaging run ${RUN_ID} on ${HEAD_REF} (${HEAD_SHA}), PR '${PR_NUMBER:-none}'"
+
+      # The PR's own code, not the default branch: triage has to read the source that
+      # actually failed. fetch-depth 0 so the skill can diff against the base branch.
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ steps.ctx.outputs.head_sha }}
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "25"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install Node deps
+        run: pnpm install
+
+      - name: Install droid CLI
+        # Same audited pattern as .github/workflows/qa.yml: download to disk, log size and
+        # SHA-256, then execute. Set EXPECTED_SHA256 to pin a known-good installer.
+        env:
+          EXPECTED_SHA256: ""
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 --retry-delay 5 https://app.factory.ai/cli -o /tmp/factory-installer.sh
+          INSTALLER_SHA="$(sha256sum /tmp/factory-installer.sh | awk '{print $1}')"
+          INSTALLER_BYTES="$(wc -c < /tmp/factory-installer.sh)"
+          echo "Installer SHA-256: ${INSTALLER_SHA}"
+          echo "Installer size:    ${INSTALLER_BYTES} bytes"
+          if [ -n "${EXPECTED_SHA256}" ] && [ "${INSTALLER_SHA}" != "${EXPECTED_SHA256}" ]; then
+            echo "::error::droid installer SHA-256 mismatch. expected=${EXPECTED_SHA256} actual=${INSTALLER_SHA}"
+            exit 1
+          fi
+          if [ "${INSTALLER_BYTES}" -lt 200 ]; then
+            echo "::error::droid installer is suspiciously small (${INSTALLER_BYTES} bytes)"
+            exit 1
+          fi
+          sh /tmp/factory-installer.sh
+
+      - name: Triage the run
+        id: triage
+        timeout-minutes: 14
+        env:
+          FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CI: "true"
+        run: |
+          export PATH="$HOME/.local/bin:$HOME/.factory/bin:$PATH"
+          ./scripts/ci-triage.sh --run "${{ steps.ctx.outputs.run_id }}"
+
+      - name: Ensure a report exists
+        if: always()
+        run: |
+          mkdir -p ci-triage
+          if [ ! -f ci-triage/report.md ]; then
+            {
+              echo "# CI Failure Triage"
+              echo
+              echo ":no_entry: Triage produced no report. See the workflow logs and the"
+              echo "\`ci-triage\` artifact for the raw bundle."
+            } > ci-triage/report.md
+          fi
+
+      - name: Read the verdict
+        id: verdict
+        if: always()
+        run: |
+          set -euo pipefail
+          HAS_AUTOFIX=false
+          SUMMARY="no verdicts produced"
+          if [ -f ci-triage/verdicts.json ]; then
+            if jq -e '[.clusters[] | select(.route == "agent-fix-now")] | length > 0' \
+                 ci-triage/verdicts.json > /dev/null; then
+              HAS_AUTOFIX=true
+            fi
+            SUMMARY="$(jq -r '
+              "\(.funnel.failures) failures -> \(.funnel.clusters) clusters: " +
+              ([.clusters[].classification] | group_by(.) | map("\(length) \(.[0])") | join(", "))
+            ' ci-triage/verdicts.json)"
+          fi
+          echo "has_autofix=${HAS_AUTOFIX}" >> "$GITHUB_OUTPUT"
+          echo "summary=${SUMMARY}" >> "$GITHUB_OUTPUT"
+          echo "### CI triage" >> "$GITHUB_STEP_SUMMARY"
+          echo "${SUMMARY}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload triage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-triage-${{ steps.ctx.outputs.run_id }}
+          path: ci-triage/
+          retention-days: 14
+
+      - name: Apply labels
+        if: always() && steps.ctx.outputs.pr_number != ''
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.ctx.outputs.pr_number }}
+        run: |
+          set -uo pipefail
+          [ -f ci-triage/labels.txt ] || exit 0
+          while IFS= read -r label; do
+            [ -n "$label" ] || continue
+            gh label create "$label" --repo "$GH_REPO" --color ededed \
+              --description "Applied by CI Auto-Triage" > /dev/null 2>&1 || true
+            gh pr edit "$PR_NUMBER" --repo "$GH_REPO" --add-label "$label" || true
+          done < ci-triage/labels.txt
+
+      - name: Post or update the triage comment
+        if: always() && steps.ctx.outputs.pr_number != ''
+        continue-on-error: true
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ steps.ctx.outputs.pr_number }}
+          FAILED_RUN_ID: ${{ steps.ctx.outputs.run_id }}
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- ci-triage -->';
+            let body = fs.existsSync('ci-triage/report.md')
+              ? fs.readFileSync('ci-triage/report.md', 'utf8')
+              : '# CI Failure Triage\n\n:no_entry: No report generated.';
+
+            const { owner, repo } = context.repo;
+            const failedRun = `${context.serverUrl}/${owner}/${repo}/actions/runs/${process.env.FAILED_RUN_ID}`;
+            const triageRun = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            const footer = [
+              '',
+              '---',
+              `_Triaged by the \`ci-triage\` skill. [Failed CI run](${failedRun}) · ` +
+              `[Triage run](${triageRun}) · Artifact: \`ci-triage-${process.env.FAILED_RUN_ID}\`._`,
+              '_Rubric: `demo/ci-triage-rubric.md`. Verdicts: `ci-triage/verdicts.json` in the artifact._',
+            ].join('\n');
+
+            const finalBody = `${marker}\n${body}${footer}`;
+            const issue_number = Number(process.env.PR_NUMBER);
+            const { data: comments } = await github.rest.issues.listComments({
+              owner, repo, issue_number, per_page: 100,
+            });
+            const existing = comments.find((c) => c.body && c.body.startsWith(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body: finalBody });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body: finalBody });
+            }
+
+  fix:
+    name: Ship stacked fix PR
+    needs: triage
+    # Opt in explicitly. Without vars.CI_AUTOFIX == 'on' this job never runs, so triage
+    # stays a read-only reviewer until someone turns fixing on. A manual run additionally
+    # has to ask for fixes, so dispatching a triage-only run cannot open a PR behind your
+    # back.
+    if: >
+      needs.triage.outputs.has_autofix == 'true' &&
+      needs.triage.outputs.pr_number != '' &&
+      vars.CI_AUTOFIX == 'on' &&
+      (github.event_name != 'workflow_dispatch' || inputs.fix)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # The exact commit that was triaged, not the branch tip. If the author pushed
+          # again while triage was running, the tip is code the verdicts never described.
+          ref: ${{ needs.triage.outputs.head_sha }}
+          fetch-depth: 0
+          token: ${{ secrets.CI_AUTOFIX_TOKEN }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "25"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install Node deps
+        run: pnpm install
+
+      - name: Fetch the triage bundle and verdicts
+        uses: actions/download-artifact@v4
+        with:
+          name: ci-triage-${{ github.event.workflow_run.id || inputs.run_id }}
+          path: ci-triage
+
+      - name: Install droid CLI
+        env:
+          EXPECTED_SHA256: ""
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 --retry-delay 5 https://app.factory.ai/cli -o /tmp/factory-installer.sh
+          INSTALLER_SHA="$(sha256sum /tmp/factory-installer.sh | awk '{print $1}')"
+          INSTALLER_BYTES="$(wc -c < /tmp/factory-installer.sh)"
+          echo "Installer SHA-256: ${INSTALLER_SHA}"
+          if [ -n "${EXPECTED_SHA256}" ] && [ "${INSTALLER_SHA}" != "${EXPECTED_SHA256}" ]; then
+            echo "::error::droid installer SHA-256 mismatch"
+            exit 1
+          fi
+          if [ "${INSTALLER_BYTES}" -lt 200 ]; then
+            echo "::error::droid installer is suspiciously small"
+            exit 1
+          fi
+          sh /tmp/factory-installer.sh
+
+      - name: Apply the fixes
+        id: fix
+        timeout-minutes: 18
+        env:
+          FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
+          CI: "true"
+        run: |
+          export PATH="$HOME/.local/bin:$HOME/.factory/bin:$PATH"
+          ./scripts/ci-triage.sh --local ci-triage/bundle --fix
+
+      - name: Open the stacked PR
+        env:
+          GH_TOKEN: ${{ secrets.CI_AUTOFIX_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          BASE_REF: ${{ needs.triage.outputs.head_ref }}
+          PR_NUMBER: ${{ needs.triage.outputs.pr_number }}
+          RUN_ID: ${{ github.event.workflow_run.id || inputs.run_id }}
+        run: |
+          set -euo pipefail
+
+          # Nothing verified clean means nothing to ship. That is a valid outcome.
+          if [ -z "$(git status --porcelain -- . ':!ci-triage')" ]; then
+            echo "No file changes were applied. Nothing to open."
+            gh pr comment "$PR_NUMBER" --repo "$GH_REPO" --body \
+              ":warning: Auto-fix ran but verification did not pass for any cluster, so no fix PR was opened. See \`ci-triage/fixes.json\` in the \`ci-triage-${RUN_ID}\` artifact."
+            exit 0
+          fi
+
+          FIX_BRANCH="fix/ci-triage-${RUN_ID}"
+          git switch --create "$FIX_BRANCH"
+
+          # ci-triage/ is agent scratch output, never part of the fix.
+          rm -rf ci-triage
+          git add --all
+          git -c user.name="droid" -c user.email="droid@factory.ai" \
+            commit --message "fix: resolve CI failures triaged in run ${RUN_ID}" \
+                   --message "Applied by the ci-triage skill for clusters routed agent-fix-now. Each change was verified by the cluster's own verification command before this branch was pushed."
+          # Re-running triage for the same CI run should refresh the fix rather than fail
+          # on an existing branch. The namespace is owned by this job, so overwriting it
+          # cannot clobber anyone's work.
+          git push --force --set-upstream origin "$FIX_BRANCH"
+
+          PR_URL="$(gh pr list --repo "$GH_REPO" --head "$FIX_BRANCH" --state open \
+            --json url --jq '.[0].url // empty')"
+          if [ -n "$PR_URL" ]; then
+            echo "Reusing existing fix PR: $PR_URL"
+            gh pr comment "$PR_NUMBER" --repo "$GH_REPO" --body \
+              ":wrench: Fix branch updated after a re-run: ${PR_URL}"
+            exit 0
+          fi
+
+          PR_URL="$(gh pr create --repo "$GH_REPO" \
+            --base "$BASE_REF" \
+            --head "$FIX_BRANCH" \
+            --title "fix: CI failures from run ${RUN_ID}" \
+            --body "$(printf '%s\n' \
+              "Stacked on \`${BASE_REF}\` so #${PR_NUMBER} keeps its own history and its author still owns the merge." \
+              "" \
+              "Triaged by the \`ci-triage\` skill against \`demo/ci-triage-rubric.md\`. Only clusters routed \`agent-fix-now\` were touched; anything classified \`infra\`, \`flake\`, or routed \`needs-human\` was left alone deliberately." \
+              "" \
+              "Verification ran in the runner before this PR was opened. See the triage comment on #${PR_NUMBER} for the cluster table and reasoning." \
+              "" \
+              "Closes nothing automatically. Review and merge as usual.")")"
+
+          echo "Opened $PR_URL"
+          gh pr comment "$PR_NUMBER" --repo "$GH_REPO" --body \
+            ":wrench: Fix ready for review: ${PR_URL} (stacked on \`${BASE_REF}\`)"

@@ -1,0 +1,121 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://factory.ai/schemas/ci-triage/verdicts.json",
+  "title": "CI triage verdicts",
+  "type": "object",
+  "required": ["schema_version", "run", "funnel", "clusters"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "run": {
+      "type": "object",
+      "required": ["mode"],
+      "additionalProperties": true,
+      "properties": {
+        "mode": { "enum": ["single", "batch"] },
+        "repo": { "type": "string" },
+        "workflow": { "type": "string" },
+        "run_id": { "type": "string" },
+        "run_url": { "type": "string" },
+        "pr_number": { "type": ["integer", "null"] },
+        "head_sha": { "type": "string" },
+        "head_ref": { "type": "string" },
+        "base_ref": { "type": "string" },
+        "failed_jobs": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "funnel": {
+      "type": "object",
+      "required": ["tests_run", "failures", "clusters"],
+      "additionalProperties": false,
+      "properties": {
+        "tests_run": { "type": "integer", "minimum": 0 },
+        "failures": { "type": "integer", "minimum": 0 },
+        "retried_failures": { "type": "integer", "minimum": 0 },
+        "clusters": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "clusters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "cluster_id",
+          "signature",
+          "failing_tests",
+          "classification",
+          "route",
+          "confidence",
+          "root_cause",
+          "target_files",
+          "proposed_fix",
+          "verification",
+          "human_note"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "cluster_id": { "type": "string", "pattern": "^c[0-9]+$" },
+          "signature": { "type": "string", "minLength": 1 },
+          "failing_tests": { "type": "array", "items": { "type": "string" } },
+          "jobs": { "type": "array", "items": { "type": "string" } },
+          "retry_count": { "type": "integer", "minimum": 0 },
+          "classification": {
+            "enum": ["product-code", "test-code", "contract-drift", "infra", "flake", "hygiene"]
+          },
+          "route": {
+            "enum": ["agent-fix-now", "needs-human", "platform-team", "quarantine-and-retry"]
+          },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "root_cause": { "type": "string", "minLength": 10 },
+          "target_files": { "type": "array", "items": { "type": "string" } },
+          "proposed_fix": { "type": "string", "minLength": 1 },
+          "verification": { "type": "string" },
+          "human_note": { "type": ["string", "null"] }
+        },
+        "allOf": [
+          {
+            "comment": "infra never routes anywhere but the platform team",
+            "if": { "properties": { "classification": { "const": "infra" } } },
+            "then": { "properties": { "route": { "const": "platform-team" } } }
+          },
+          {
+            "comment": "flakes are quarantined, never fixed in production source",
+            "if": { "properties": { "classification": { "const": "flake" } } },
+            "then": { "properties": { "route": { "const": "quarantine-and-retry" } } }
+          },
+          {
+            "comment": "Low confidence rules out auto-fixing, but it does not override the class. Forcing needs-human here would contradict the infra and flake rules above and make a low-confidence infra cluster impossible to express.",
+            "if": { "properties": { "confidence": { "exclusiveMaximum": 0.75 } } },
+            "then": {
+              "properties": { "route": { "not": { "const": "agent-fix-now" } } }
+            }
+          },
+          {
+            "comment": "anything not auto-fixed must say what the human decides",
+            "if": {
+              "properties": { "route": { "not": { "const": "agent-fix-now" } } }
+            },
+            "then": { "properties": { "human_note": { "type": "string", "minLength": 10 } } }
+          }
+        ]
+      }
+    },
+    "economics": {
+      "comment": "Written by scripts/ci-triage-stream.py --finalize from the CLI completion event, not by the agent.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "model": { "type": "string" },
+        "input_tokens": { "type": "integer", "minimum": 0 },
+        "output_tokens": { "type": "integer", "minimum": 0 },
+        "cache_read_input_tokens": { "type": "integer", "minimum": 0 },
+        "cache_creation_input_tokens": { "type": "integer", "minimum": 0 },
+        "factory_credits": { "type": "integer", "minimum": 0 },
+        "wall_clock_seconds": { "type": "number", "minimum": 0 },
+        "turns": { "type": "integer", "minimum": 0 },
+        "session_id": { "type": "string" },
+        "estimated_cost_usd": { "type": "number", "minimum": 0 }
+      }
+    }
+  }
+}

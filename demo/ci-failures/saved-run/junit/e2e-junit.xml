@@ -1,0 +1,76 @@
+<testsuites id="" name="" tests="20" failures="1" skipped="0" errors="0" time="18.843863999999996">
+<testsuite name="api-health.spec.ts" timestamp="2026-09-01T04:02:08.662Z" hostname="chromium" tests="5" failures="0" skipped="0" time="0.702" errors="0">
+<testcase name="API Health › backend health endpoint should respond" classname="api-health.spec.ts" time="0.048">
+</testcase>
+<testcase name="API Health › customers API should respond" classname="api-health.spec.ts" time="0.145">
+</testcase>
+<testcase name="API Health › plans API should respond" classname="api-health.spec.ts" time="0.119">
+</testcase>
+<testcase name="API Health › devices API should respond" classname="api-health.spec.ts" time="0.221">
+</testcase>
+<testcase name="API Health › dashboard stats API should respond" classname="api-health.spec.ts" time="0.169">
+</testcase>
+</testsuite>
+<testsuite name="customers.spec.ts" timestamp="2026-09-01T04:02:08.662Z" hostname="chromium" tests="4" failures="0" skipped="0" time="11.902" errors="0">
+<testcase name="Customers Page › should display customers table" classname="customers.spec.ts" time="2.971">
+</testcase>
+<testcase name="Customers Page › should load customers from API" classname="customers.spec.ts" time="3.419">
+</testcase>
+<testcase name="Customers Page › should display customer data in table rows" classname="customers.spec.ts" time="2.894">
+</testcase>
+<testcase name="Customers Page › should have add customer button" classname="customers.spec.ts" time="2.618">
+</testcase>
+</testsuite>
+<testsuite name="dashboard-revenue.spec.ts" timestamp="2026-09-01T04:02:08.662Z" hostname="chromium" tests="3" failures="1" skipped="0" time="0.189" errors="0">
+<testcase name="Dashboard revenue aggregates › monthly revenue counts only active subscribers" classname="dashboard-revenue.spec.ts" time="0.105">
+<failure message="dashboard-revenue.spec.ts:21:7 monthly revenue counts only active subscribers" type="FAILURE">
+<![CDATA[  [chromium] › dashboard-revenue.spec.ts:21:7 › Dashboard revenue aggregates › monthly revenue counts only active subscribers 
+
+    Error: expect(received).toBeCloseTo(expected, precision)
+
+    Expected: 31331.010000000264
+    Received: 39330
+
+    Expected precision:    2
+    Expected difference: < 0.005
+    Received difference:   7998.989999999736
+
+      38 |       .reduce((sum, c) => sum + (priceByPlan.get(c.plan_name as string) ?? 0), 0)
+      39 |
+    > 40 |     expect(Number(stats.monthly_revenue)).toBeCloseTo(expected, 2)
+         |                                           ^
+      41 |   })
+      42 |
+      43 |   test("active customer count matches the customer list", async ({ request }) => {
+        at /Users/sherry/.factory/worktrees/b439f1d4/Telecom-Demo-NextJS-Springboot/e2e/dashboard-revenue.spec.ts:40:43
+]]>
+</failure>
+</testcase>
+<testcase name="Dashboard revenue aggregates › active customer count matches the customer list" classname="dashboard-revenue.spec.ts" time="0.044">
+</testcase>
+<testcase name="Dashboard revenue aggregates › revenue by plan excludes plans with no active subscribers" classname="dashboard-revenue.spec.ts" time="0.04">
+</testcase>
+</testsuite>
+<testsuite name="dashboard.spec.ts" timestamp="2026-09-01T04:02:08.662Z" hostname="chromium" tests="3" failures="0" skipped="0" time="7.393" errors="0">
+<testcase name="Dashboard › should display dashboard KPI cards" classname="dashboard.spec.ts" time="2.41">
+</testcase>
+<testcase name="Dashboard › should load dashboard data from API" classname="dashboard.spec.ts" time="2.502">
+</testcase>
+<testcase name="Dashboard › should display charts" classname="dashboard.spec.ts" time="2.481">
+</testcase>
+</testsuite>
+<testsuite name="navigation.spec.ts" timestamp="2026-09-01T04:02:08.662Z" hostname="chromium" tests="2" failures="0" skipped="0" time="9.777" errors="0">
+<testcase name="Navigation › should navigate to all main pages" classname="navigation.spec.ts" time="5.38">
+</testcase>
+<testcase name="Navigation › sidebar navigation works correctly" classname="navigation.spec.ts" time="4.397">
+</testcase>
+</testsuite>
+<testsuite name="plans.spec.ts" timestamp="2026-09-01T04:02:08.662Z" hostname="chromium" tests="3" failures="0" skipped="0" time="4.464" errors="0">
+<testcase name="Plans Page › should display plans table" classname="plans.spec.ts" time="1.548">
+</testcase>
+<testcase name="Plans Page › should load plans from API" classname="plans.spec.ts" time="1.6">
+</testcase>
+<testcase name="Plans Page › should display plan details including price" classname="plans.spec.ts" time="1.316">
+</testcase>
+</testsuite>
+</testsuites>

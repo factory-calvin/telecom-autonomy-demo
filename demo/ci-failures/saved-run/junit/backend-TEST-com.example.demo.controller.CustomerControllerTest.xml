@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.demo.controller.CustomerControllerTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-08-31T23:42:31.125Z" hostname="Sherry-X-Macbook.local" time="0.102">
+  <properties/>
+  <testcase name="createCustomerStartsActiveWithTheGivenBalance()" classname="com.example.demo.controller.CustomerControllerTest" time="0.045"/>
+  <testcase name="deleteCustomerReturnsNotFoundWhenMissing()" classname="com.example.demo.controller.CustomerControllerTest" time="0.009"/>
+  <testcase name="updateCustomerAppliesAStatusTransition()" classname="com.example.demo.controller.CustomerControllerTest" time="0.008"/>
+  <testcase name="createCustomerRejectsAnUnknownPlan()" classname="com.example.demo.controller.CustomerControllerTest" time="0.006"/>
+  <testcase name="deleteCustomerReturnsNoContentWhenPresent()" classname="com.example.demo.controller.CustomerControllerTest" time="0.004"/>
+  <testcase name="getAllCustomersFlattensPlanOntoTheResponse()" classname="com.example.demo.controller.CustomerControllerTest" time="0.007"/>
+  <testcase name="updateCustomerReturnsNotFoundForUnknownId()" classname="com.example.demo.controller.CustomerControllerTest" time="0.006"/>
+  <testcase name="getAllCustomersToleratesAMissingPlan()" classname="com.example.demo.controller.CustomerControllerTest" time="0.008"/>
+  <testcase name="getCustomerReturnsNotFoundForUnknownId()" classname="com.example.demo.controller.CustomerControllerTest" time="0.005"/>
+  <system-out><![CDATA[2026-08-31T16:42:31.131-07:00  INFO 33411 --- [demo] [    Test worker] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-08-31T16:42:31.131-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-08-31T16:42:31.131-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-08-31T16:42:31.163-07:00  INFO 33411 --- [demo] [    Test worker] c.e.demo.controller.CustomerController   : Creating customer: email=ada@example.com
+2026-08-31T16:42:31.164-07:00  INFO 33411 --- [demo] [    Test worker] c.e.demo.controller.CustomerController   : Customer created: id=11, email=ada@example.com
+2026-08-31T16:42:31.174-07:00  INFO 33411 --- [demo] [    Test worker] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-08-31T16:42:31.174-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-08-31T16:42:31.174-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-08-31T16:42:31.175-07:00  INFO 33411 --- [demo] [    Test worker] c.e.demo.controller.CustomerController   : Deleting customer: id=404
+2026-08-31T16:42:31.176-07:00  WARN 33411 --- [demo] [    Test worker] c.e.demo.controller.CustomerController   : Customer not found for deletion: id=404
+2026-08-31T16:42:31.183-07:00  INFO 33411 --- [demo] [    Test worker] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-08-31T16:42:31.183-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-08-31T16:42:31.183-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-08-31T16:42:31.186-07:00  INFO 33411 --- [demo] [    Test worker] c.e.demo.controller.CustomerController   : Updating customer: id=1
+2026-08-31T16:42:31.186-07:00  INFO 33411 --- [demo] [    Test worker] c.e.demo.controller.CustomerController   : Customer updated: id=1, email=customer1@example.com
+2026-08-31T16:42:31.192-07:00  INFO 33411 --- [demo] [    Test worker] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-08-31T16:42:31.192-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-08-31T16:42:31.192-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-08-31T16:42:31.194-07:00  INFO 33411 --- [demo] [    Test worker] c.e.demo.controller.CustomerController   : Creating customer: email=ada@example.com
+2026-08-31T16:42:31.194-07:00  WARN 33411 --- [demo] [    Test worker] c.e.demo.controller.CustomerController   : Plan not found for customer creation: planId=99
+2026-08-31T16:42:31.199-07:00  INFO 33411 --- [demo] [    Test worker] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-08-31T16:42:31.199-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-08-31T16:42:31.199-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-08-31T16:42:31.199-07:00  INFO 33411 --- [demo] [    Test worker] c.e.demo.controller.CustomerController   : Deleting customer: id=1
+2026-08-31T16:42:31.200-07:00  INFO 33411 --- [demo] [    Test worker] c.e.demo.controller.CustomerController   : Customer deleted: id=1
+2026-08-31T16:42:31.204-07:00  INFO 33411 --- [demo] [    Test worker] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-08-31T16:42:31.204-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-08-31T16:42:31.204-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-08-31T16:42:31.205-07:00  INFO 33411 --- [demo] [    Test worker] c.e.demo.controller.CustomerController   : Fetching all customers
+2026-08-31T16:42:31.210-07:00  INFO 33411 --- [demo] [    Test worker] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-08-31T16:42:31.210-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-08-31T16:42:31.210-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-08-31T16:42:31.212-07:00  INFO 33411 --- [demo] [    Test worker] c.e.demo.controller.CustomerController   : Updating customer: id=404
+2026-08-31T16:42:31.212-07:00  WARN 33411 --- [demo] [    Test worker] c.e.demo.controller.CustomerController   : Customer not found for update: id=404
+2026-08-31T16:42:31.216-07:00  INFO 33411 --- [demo] [    Test worker] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-08-31T16:42:31.216-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-08-31T16:42:31.216-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-08-31T16:42:31.217-07:00  INFO 33411 --- [demo] [    Test worker] c.e.demo.controller.CustomerController   : Fetching all customers
+2026-08-31T16:42:31.225-07:00  INFO 33411 --- [demo] [    Test worker] o.s.mock.web.MockServletContext          : Initializing Spring TestDispatcherServlet ''
+2026-08-31T16:42:31.225-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-08-31T16:42:31.225-07:00  INFO 33411 --- [demo] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-08-31T16:42:31.226-07:00  INFO 33411 --- [demo] [    Test worker] c.e.demo.controller.CustomerController   : Fetching customer with id=404
+2026-08-31T16:42:31.226-07:00  WARN 33411 --- [demo] [    Test worker] c.e.demo.controller.CustomerController   : Customer not found: id=404
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

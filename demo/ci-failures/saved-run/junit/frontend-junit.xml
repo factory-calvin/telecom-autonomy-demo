@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="24" failures="0" errors="0" time="1.008434251">
+    <testsuite name="__tests__/components/customers-table.test.tsx" timestamp="2026-08-31T23:08:30.884Z" hostname="Sherry-X-Macbook.local" tests="6" failures="0" errors="0" skipped="0" time="0.172753125">
+        <testcase classname="__tests__/components/customers-table.test.tsx" name="CustomersTable &gt; renders the expected column headers" time="0.118297375">
+        </testcase>
+        <testcase classname="__tests__/components/customers-table.test.tsx" name="CustomersTable &gt; joins first and last name into a single cell" time="0.006329375">
+        </testcase>
+        <testcase classname="__tests__/components/customers-table.test.tsx" name="CustomersTable &gt; formats the balance to two decimal places" time="0.005714333">
+        </testcase>
+        <testcase classname="__tests__/components/customers-table.test.tsx" name="CustomersTable &gt; falls back to a dash when the customer has no plan" time="0.004613917">
+        </testcase>
+        <testcase classname="__tests__/components/customers-table.test.tsx" name="CustomersTable &gt; renders the raw status value as a badge" time="0.006549542">
+        </testcase>
+        <testcase classname="__tests__/components/customers-table.test.tsx" name="CustomersTable &gt; calls onEdit and onDelete with the row&apos;s customer" time="0.030378083">
+        </testcase>
+    </testsuite>
+    <testsuite name="__tests__/components/logo.test.tsx" timestamp="2026-08-31T23:08:30.884Z" hostname="Sherry-X-Macbook.local" tests="2" failures="0" errors="0" skipped="0" time="0.102175584">
+        <testcase classname="__tests__/components/logo.test.tsx" name="Logo &gt; renders two images for light and dark mode" time="0.086384541">
+        </testcase>
+        <testcase classname="__tests__/components/logo.test.tsx" name="Logo &gt; applies custom className" time="0.014873">
+        </testcase>
+    </testsuite>
+    <testsuite name="__tests__/components/plans-table.test.tsx" timestamp="2026-08-31T23:08:30.885Z" hostname="Sherry-X-Macbook.local" tests="6" failures="0" errors="0" skipped="0" time="0.174295292">
+        <testcase classname="__tests__/components/plans-table.test.tsx" name="PlansTable &gt; renders the expected column headers" time="0.121116459">
+        </testcase>
+        <testcase classname="__tests__/components/plans-table.test.tsx" name="PlansTable &gt; renders one row per plan" time="0.006553708">
+        </testcase>
+        <testcase classname="__tests__/components/plans-table.test.tsx" name="PlansTable &gt; formats the monthly price to two decimal places" time="0.005460291">
+        </testcase>
+        <testcase classname="__tests__/components/plans-table.test.tsx" name="PlansTable &gt; labels null limits as Unlimited and omits the GB suffix" time="0.006117625">
+        </testcase>
+        <testcase classname="__tests__/components/plans-table.test.tsx" name="PlansTable &gt; shows an Active or Inactive badge per plan" time="0.005580916">
+        </testcase>
+        <testcase classname="__tests__/components/plans-table.test.tsx" name="PlansTable &gt; calls onEdit and onDelete with the row&apos;s plan" time="0.028490625">
+        </testcase>
+    </testsuite>
+    <testsuite name="__tests__/hooks/use-dashboard-stats.test.tsx" timestamp="2026-08-31T23:08:30.885Z" hostname="Sherry-X-Macbook.local" tests="4" failures="0" errors="0" skipped="0" time="0.225274125">
+        <testcase classname="__tests__/hooks/use-dashboard-stats.test.tsx" name="useDashboardStats &gt; fetches every dashboard endpoint once" time="0.062442875">
+        </testcase>
+        <testcase classname="__tests__/hooks/use-dashboard-stats.test.tsx" name="useDashboardStats &gt; populates every slice of dashboard state" time="0.05401675">
+        </testcase>
+        <testcase classname="__tests__/hooks/use-dashboard-stats.test.tsx" name="useDashboardStats &gt; reports an error and leaves stats null when the stats call fails" time="0.054302083">
+        </testcase>
+        <testcase classname="__tests__/hooks/use-dashboard-stats.test.tsx" name="useDashboardStats &gt; refetches on demand" time="0.053479875">
+        </testcase>
+    </testsuite>
+    <testsuite name="__tests__/hooks/use-plans.test.tsx" timestamp="2026-08-31T23:08:30.886Z" hostname="Sherry-X-Macbook.local" tests="6" failures="0" errors="0" skipped="0" time="0.333936125">
+        <testcase classname="__tests__/hooks/use-plans.test.tsx" name="usePlans &gt; loads plans on mount and clears the loading flag" time="0.062756084">
+        </testcase>
+        <testcase classname="__tests__/hooks/use-plans.test.tsx" name="usePlans &gt; surfaces an error message when the request fails" time="0.053815041">
+        </testcase>
+        <testcase classname="__tests__/hooks/use-plans.test.tsx" name="usePlans &gt; appends the created plan to local state" time="0.0551965">
+        </testcase>
+        <testcase classname="__tests__/hooks/use-plans.test.tsx" name="usePlans &gt; replaces the updated plan in local state" time="0.054216042">
+        </testcase>
+        <testcase classname="__tests__/hooks/use-plans.test.tsx" name="usePlans &gt; removes the deleted plan from local state" time="0.053735291">
+        </testcase>
+        <testcase classname="__tests__/hooks/use-plans.test.tsx" name="usePlans &gt; throws and leaves state untouched when a delete fails" time="0.053296041">
+        </testcase>
+    </testsuite>
+</testsuites>

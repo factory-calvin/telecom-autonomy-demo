@@ -1,0 +1,215 @@
+{
+  "seed": 20260315,
+  "generated_by": "scripts/ci-nightly-fixture.py",
+  "totals": {
+    "tests": 2000,
+    "test_failures": 106,
+    "retry_entries": 19,
+    "job_level_failures": 3,
+    "root_causes": 10
+  },
+  "root_causes": [
+    {
+      "root_cause_id": "rc-billing-proration",
+      "classification": "product-code",
+      "route": "agent-fix-now",
+      "summary": "BillingCycleService prorates with double arithmetic instead of BigDecimal, so mid-cycle plan changes drift by fractions of a cent and accumulate.",
+      "target_files": ["backend/src/main/java/com/example/demo/billing/BillingCycleService.java"],
+      "failure_count": 23,
+      "job_level": false,
+      "failing_tests": [
+        "com.example.demo.billing.BillingCycleServiceTest:filtersTheInvoiceTotal1",
+        "com.example.demo.billing.ProrationTest:rendersTheInvoiceTotal2",
+        "com.example.demo.controller.InvoiceControllerTest:persistsTheInvoiceTotal3",
+        "com.example.demo.billing.BillingCycleServiceTest:normalizesTheInvoiceTotal4",
+        "com.example.demo.billing.ProrationTest:normalizesAPartialMonth5",
+        "com.example.demo.controller.InvoiceControllerTest:validatesAPartialMonth6",
+        "com.example.demo.billing.BillingCycleServiceTest:returnsAMidCycleUpgrade7",
+        "com.example.demo.billing.ProrationTest:validatesAMidCycleUpgrade8",
+        "com.example.demo.controller.InvoiceControllerTest:normalizesAMidCycleUpgrade9",
+        "com.example.demo.billing.BillingCycleServiceTest:rendersAMidCycleUpgrade10",
+        "com.example.demo.billing.ProrationTest:filtersAPartialMonth11",
+        "com.example.demo.controller.InvoiceControllerTest:rejectsTheProratedAmount12",
+        "com.example.demo.billing.BillingCycleServiceTest:validatesAPartialMonth13",
+        "com.example.demo.billing.ProrationTest:normalizesAPartialMonth14",
+        "com.example.demo.controller.InvoiceControllerTest:excludesAPartialMonth15",
+        "com.example.demo.billing.BillingCycleServiceTest:paginatesAPartialMonth16",
+        "com.example.demo.billing.ProrationTest:returnsTheProratedAmount17",
+        "com.example.demo.controller.InvoiceControllerTest:returnsTheInvoiceTotal18",
+        "com.example.demo.billing.BillingCycleServiceTest:normalizesAMidCycleUpgrade19",
+        "com.example.demo.billing.ProrationTest:returnsAPartialMonth20",
+        "com.example.demo.controller.InvoiceControllerTest:aggregatesAPartialMonth21",
+        "com.example.demo.billing.BillingCycleServiceTest:persistsAPartialMonth22",
+        "com.example.demo.billing.ProrationTest:excludesTheProratedAmount23"
+      ]
+    },
+    {
+      "root_cause_id": "rc-usage-timezone",
+      "classification": "product-code",
+      "route": "agent-fix-now",
+      "summary": "Usage aggregation buckets records by local date instead of UTC, so the last hour of each day lands in the wrong bucket.",
+      "target_files": ["backend/src/main/java/com/example/demo/usage/UsageAggregator.java"],
+      "failure_count": 14,
+      "job_level": false,
+      "failing_tests": [
+        "com.example.demo.usage.UsageAggregatorTest:aggregatesTheUsageWindow24",
+        "com.example.demo.controller.UsageRecordControllerTest:paginatesTheRollup25",
+        "com.example.demo.usage.UsageAggregatorTest:rendersTheDailyBucket26",
+        "com.example.demo.controller.UsageRecordControllerTest:rejectsAMidnightRecord27",
+        "com.example.demo.usage.UsageAggregatorTest:validatesTheUsageWindow28",
+        "com.example.demo.controller.UsageRecordControllerTest:paginatesTheRollup29",
+        "com.example.demo.usage.UsageAggregatorTest:returnsTheUsageWindow30",
+        "com.example.demo.controller.UsageRecordControllerTest:persistsTheRollup31",
+        "com.example.demo.usage.UsageAggregatorTest:persistsTheRollup32",
+        "com.example.demo.controller.UsageRecordControllerTest:normalizesTheRollup33",
+        "com.example.demo.usage.UsageAggregatorTest:normalizesAMidnightRecord34",
+        "com.example.demo.controller.UsageRecordControllerTest:validatesTheRollup35",
+        "com.example.demo.usage.UsageAggregatorTest:excludesAMidnightRecord36",
+        "com.example.demo.controller.UsageRecordControllerTest:validatesTheRollup37"
+      ]
+    },
+    {
+      "root_cause_id": "rc-null-plan-npe",
+      "classification": "product-code",
+      "route": "agent-fix-now",
+      "summary": "Customer export dereferences getPlan() without a null check, so any customer whose plan was deleted throws.",
+      "target_files": ["backend/src/main/java/com/example/demo/export/CustomerExporter.java"],
+      "failure_count": 16,
+      "job_level": false,
+      "failing_tests": [
+        "com.example.demo.export.CustomerExportTest:paginatesTheExportRow38",
+        "com.example.demo.controller.CustomerControllerTest:returnsACustomerWithoutAPlan39",
+        "com.example.demo.export.CustomerExportTest:rejectsADeletedPlan40",
+        "com.example.demo.controller.CustomerControllerTest:validatesTheCsvHeader41",
+        "com.example.demo.export.CustomerExportTest:validatesTheCsvHeader42",
+        "com.example.demo.controller.CustomerControllerTest:validatesACustomerWithoutAPlan43",
+        "com.example.demo.export.CustomerExportTest:rendersADeletedPlan44",
+        "com.example.demo.controller.CustomerControllerTest:rejectsACustomerWithoutAPlan45",
+        "com.example.demo.export.CustomerExportTest:excludesTheExportRow46",
+        "com.example.demo.controller.CustomerControllerTest:filtersTheCsvHeader47",
+        "com.example.demo.export.CustomerExportTest:persistsACustomerWithoutAPlan48",
+        "com.example.demo.controller.CustomerControllerTest:rendersACustomerWithoutAPlan49",
+        "com.example.demo.export.CustomerExportTest:excludesTheCsvHeader50",
+        "com.example.demo.controller.CustomerControllerTest:filtersADeletedPlan51",
+        "com.example.demo.export.CustomerExportTest:persistsADeletedPlan52",
+        "com.example.demo.controller.CustomerControllerTest:filtersADeletedPlan53"
+      ]
+    },
+    {
+      "root_cause_id": "rc-stale-copy-assertion",
+      "classification": "test-code",
+      "route": "agent-fix-now",
+      "summary": "Ticket priority labels were renamed from \"Urgent\" to \"P1\" in the source; these tests still assert the old copy.",
+      "target_files": ["__tests__/components/tickets-table.test.tsx"],
+      "failure_count": 9,
+      "job_level": false,
+      "failing_tests": [
+        "tickets-table.test.tsx:renders the priority badge #54",
+        "ticket-detail.test.tsx:normalizes the ticket row #55",
+        "tickets-table.test.tsx:renders the priority badge #56",
+        "ticket-detail.test.tsx:normalizes the urgent label #57",
+        "tickets-table.test.tsx:paginates the priority badge #58",
+        "ticket-detail.test.tsx:paginates the ticket row #59",
+        "tickets-table.test.tsx:excludes the urgent label #60",
+        "ticket-detail.test.tsx:aggregates the ticket row #61",
+        "tickets-table.test.tsx:paginates the ticket row #62"
+      ]
+    },
+    {
+      "root_cause_id": "rc-device-contract-drift",
+      "classification": "contract-drift",
+      "route": "needs-human",
+      "summary": "DeviceResponse renamed simNumber to sim_msisdn on the backend; the web client and two integration suites still read simNumber.",
+      "target_files": [
+        "backend/src/main/java/com/example/demo/controller/DeviceController.java",
+        "components/devices-table.tsx"
+      ],
+      "failure_count": 11,
+      "job_level": false,
+      "failing_tests": [
+        "com.example.demo.controller.DeviceControllerTest:rendersTheInventoryPayload63",
+        "devices-table.test.tsx:rejects the inventory payload #64",
+        "devices.spec.ts:validates the device row #65",
+        "com.example.demo.controller.DeviceControllerTest:paginatesTheInventoryPayload66",
+        "devices-table.test.tsx:excludes the sim number #67",
+        "devices.spec.ts:persists the device row #68",
+        "com.example.demo.controller.DeviceControllerTest:returnsTheSimNumber69",
+        "devices-table.test.tsx:rejects the sim number #70",
+        "devices.spec.ts:returns the device row #71",
+        "com.example.demo.controller.DeviceControllerTest:rejectsTheDeviceRow72",
+        "devices-table.test.tsx:paginates the inventory payload #73"
+      ]
+    },
+    {
+      "root_cause_id": "rc-artifact-registry-503",
+      "classification": "infra",
+      "route": "platform-team",
+      "summary": "The internal artifact mirror returned 503 for ~4 minutes, so two jobs could not resolve dependencies.",
+      "target_files": [],
+      "failure_count": 18,
+      "job_level": true,
+      "failing_tests": []
+    },
+    {
+      "root_cause_id": "rc-runner-disk-full",
+      "classification": "infra",
+      "route": "platform-team",
+      "summary": "The e2e runner filled its disk writing traces, so Playwright could not start a browser.",
+      "target_files": [],
+      "failure_count": 6,
+      "job_level": true,
+      "failing_tests": []
+    },
+    {
+      "root_cause_id": "rc-shared-fixture-order",
+      "classification": "flake",
+      "route": "quarantine-and-retry",
+      "summary": "A module-scope fixture array is mutated by the first test in the file, so every later test in that file sees extra rows. Passes in isolation.",
+      "target_files": [],
+      "failure_count": 12,
+      "job_level": false,
+      "failing_tests": [
+        "usage-table.test.tsx:validates the page window #74",
+        "customers-table.test.tsx:returns the page window #75",
+        "usage-table.test.tsx:aggregates the visible rows #76",
+        "customers-table.test.tsx:excludes the page window #77",
+        "usage-table.test.tsx:filters the visible rows #78",
+        "customers-table.test.tsx:aggregates the page window #79",
+        "usage-table.test.tsx:persists the row count #80",
+        "customers-table.test.tsx:rejects the page window #81",
+        "usage-table.test.tsx:validates the visible rows #82",
+        "customers-table.test.tsx:paginates the page window #83",
+        "usage-table.test.tsx:aggregates the visible rows #84",
+        "customers-table.test.tsx:returns the page window #85"
+      ]
+    },
+    {
+      "root_cause_id": "rc-wall-clock-boundary",
+      "classification": "flake",
+      "route": "quarantine-and-retry",
+      "summary": "Two suites build an expected date from new Date() and compare against a value computed a moment later, so they fail when a run straddles midnight UTC.",
+      "target_files": [],
+      "failure_count": 7,
+      "job_level": false,
+      "failing_tests": [
+        "com.example.demo.usage.UsageWindowTest:rejectsTheCutoff86",
+        "usage.spec.ts:returns the window end #87",
+        "com.example.demo.usage.UsageWindowTest:persistsTheCutoff88",
+        "usage.spec.ts:rejects the billing day #89",
+        "com.example.demo.usage.UsageWindowTest:returnsTheCutoff90",
+        "usage.spec.ts:aggregates the cutoff #91",
+        "com.example.demo.usage.UsageWindowTest:aggregatesTheCutoff92"
+      ]
+    },
+    {
+      "root_cause_id": "rc-spotless-drift",
+      "classification": "hygiene",
+      "route": "agent-fix-now",
+      "summary": "Four Java files were committed without running spotlessApply.",
+      "target_files": [],
+      "failure_count": 4,
+      "job_level": true,
+      "failing_tests": []
+    }
+  ]
+}

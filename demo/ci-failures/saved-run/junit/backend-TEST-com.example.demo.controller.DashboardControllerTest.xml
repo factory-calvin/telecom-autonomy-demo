@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.demo.controller.DashboardControllerTest" tests="8" skipped="0" failures="3" errors="0" timestamp="2026-08-31T23:42:25.324Z" hostname="Sherry-X-Macbook.local" time="1.104">
+  <properties/>
+  <testcase name="devicesByStatusReturnsStatusNames()" classname="com.example.demo.controller.DashboardControllerTest" time="1.017"/>
+  <testcase name="statsRevenueExcludesNonActiveCustomers()" classname="com.example.demo.controller.DashboardControllerTest" time="0.026">
+    <failure message="java.lang.AssertionError: JSON path &quot;$.monthly_revenue&quot; expected:&lt;80.0&gt; but was:&lt;140.0&gt;" type="java.lang.AssertionError">java.lang.AssertionError: JSON path &quot;$.monthly_revenue&quot; expected:&lt;80.0&gt; but was:&lt;140.0&gt;
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.util.JsonPathExpectationsHelper.assertValue(JsonPathExpectationsHelper.java:172)
+	at org.springframework.test.web.servlet.result.JsonPathResultMatchers.lambda$value$2(JsonPathResultMatchers.java:111)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.example.demo.controller.DashboardControllerTest.statsRevenueExcludesNonActiveCustomers(DashboardControllerTest.java:80)
+</failure>
+  </testcase>
+  <testcase name="statsReturnsActiveCustomerCountAndMonthlyRevenue()" classname="com.example.demo.controller.DashboardControllerTest" time="0.012">
+    <failure message="java.lang.AssertionError: JSON path &quot;$.monthly_revenue&quot; expected:&lt;80.0&gt; but was:&lt;140.0&gt;" type="java.lang.AssertionError">java.lang.AssertionError: JSON path &quot;$.monthly_revenue&quot; expected:&lt;80.0&gt; but was:&lt;140.0&gt;
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.util.JsonPathExpectationsHelper.assertValue(JsonPathExpectationsHelper.java:172)
+	at org.springframework.test.web.servlet.result.JsonPathResultMatchers.lambda$value$2(JsonPathResultMatchers.java:111)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.example.demo.controller.DashboardControllerTest.statsReturnsActiveCustomerCountAndMonthlyRevenue(DashboardControllerTest.java:71)
+</failure>
+  </testcase>
+  <testcase name="customersByPlanReturnsOneEntryPerPlan()" classname="com.example.demo.controller.DashboardControllerTest" time="0.01"/>
+  <testcase name="revenueByPlanMultipliesPlanPriceByActiveCustomerCount()" classname="com.example.demo.controller.DashboardControllerTest" time="0.01"/>
+  <testcase name="statsIgnoresActiveCustomersWithoutAPlan()" classname="com.example.demo.controller.DashboardControllerTest" time="0.009"/>
+  <testcase name="ticketsByStatusReturnsStatusNames()" classname="com.example.demo.controller.DashboardControllerTest" time="0.009"/>
+  <testcase name="revenueByPlanOnlyIncludesPlansWithActiveCustomers()" classname="com.example.demo.controller.DashboardControllerTest" time="0.009">
+    <failure message="java.lang.AssertionError: JSON path &quot;$.length()&quot; expected:&lt;2&gt; but was:&lt;3&gt;" type="java.lang.AssertionError">java.lang.AssertionError: JSON path &quot;$.length()&quot; expected:&lt;2&gt; but was:&lt;3&gt;
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.util.JsonPathExpectationsHelper.assertValue(JsonPathExpectationsHelper.java:172)
+	at org.springframework.test.web.servlet.result.JsonPathResultMatchers.lambda$value$2(JsonPathResultMatchers.java:111)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.example.demo.controller.DashboardControllerTest.revenueByPlanOnlyIncludesPlansWithActiveCustomers(DashboardControllerTest.java:98)
+</failure>
+  </testcase>
+  <system-out><![CDATA[16:42:25.948 [Test worker] INFO org.hibernate.validator.internal.util.Version -- HV000001: Hibernate Validator 9.0.1.Final
+16:42:26.175 [Test worker] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+16:42:26.176 [Test worker] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+16:42:26.178 [Test worker] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 2 ms
+16:42:26.240 [Test worker] INFO com.example.demo.controller.DashboardController -- Fetching devices by status chart data
+16:42:26.349 [Test worker] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+16:42:26.350 [Test worker] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+16:42:26.350 [Test worker] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+16:42:26.352 [Test worker] INFO com.example.demo.controller.DashboardController -- Fetching dashboard stats
+16:42:26.375 [Test worker] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+16:42:26.375 [Test worker] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+16:42:26.376 [Test worker] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+16:42:26.377 [Test worker] INFO com.example.demo.controller.DashboardController -- Fetching dashboard stats
+16:42:26.387 [Test worker] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+16:42:26.387 [Test worker] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+16:42:26.387 [Test worker] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+16:42:26.388 [Test worker] INFO com.example.demo.controller.DashboardController -- Fetching customers by plan chart data
+16:42:26.396 [Test worker] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+16:42:26.397 [Test worker] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+16:42:26.397 [Test worker] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+16:42:26.398 [Test worker] INFO com.example.demo.controller.DashboardController -- Fetching revenue by plan chart data
+16:42:26.406 [Test worker] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+16:42:26.407 [Test worker] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+16:42:26.407 [Test worker] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+16:42:26.408 [Test worker] INFO com.example.demo.controller.DashboardController -- Fetching dashboard stats
+16:42:26.416 [Test worker] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+16:42:26.416 [Test worker] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+16:42:26.416 [Test worker] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+16:42:26.417 [Test worker] INFO com.example.demo.controller.DashboardController -- Fetching tickets by status chart data
+16:42:26.425 [Test worker] INFO org.springframework.mock.web.MockServletContext -- Initializing Spring TestDispatcherServlet ''
+16:42:26.425 [Test worker] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Initializing Servlet ''
+16:42:26.425 [Test worker] INFO org.springframework.test.web.servlet.TestDispatcherServlet -- Completed initialization in 0 ms
+16:42:26.426 [Test worker] INFO com.example.demo.controller.DashboardController -- Fetching revenue by plan chart data
+]]></system-out>
+  <system-err><![CDATA[Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/Users/sherry/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.17.8/f09415827a71be7ed621c7bd02550678f28bc81c/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+]]></system-err>
+</testsuite>

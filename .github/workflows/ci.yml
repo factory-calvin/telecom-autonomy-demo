@@ -156,6 +156,16 @@ jobs:
           path: playwright-report/
           retention-days: 30
 
+      # The HTML report above is for humans. Triage needs the JUnit XML, which Playwright
+      # writes separately to test-results/ and which nothing else uploads.
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: e2e-test-results
+          path: test-results/
+          retention-days: 30
+
   docs:
     name: Documentation
     runs-on: ubuntu-latest
