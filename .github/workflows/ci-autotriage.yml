@@ -263,7 +263,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ needs.triage.outputs.head_ref }}
+          # The exact commit that was triaged, not the branch tip. If the author pushed
+          # again while triage was running, the tip is code the verdicts never described.
+          ref: ${{ needs.triage.outputs.head_sha }}
           fetch-depth: 0
           token: ${{ secrets.CI_AUTOFIX_TOKEN }}
 
@@ -349,7 +351,19 @@ jobs:
           git -c user.name="droid" -c user.email="droid@factory.ai" \
             commit --message "fix: resolve CI failures triaged in run ${RUN_ID}" \
                    --message "Applied by the ci-triage skill for clusters routed agent-fix-now. Each change was verified by the cluster's own verification command before this branch was pushed."
-          git push --set-upstream origin "$FIX_BRANCH"
+          # Re-running triage for the same CI run should refresh the fix rather than fail
+          # on an existing branch. The namespace is owned by this job, so overwriting it
+          # cannot clobber anyone's work.
+          git push --force --set-upstream origin "$FIX_BRANCH"
+
+          PR_URL="$(gh pr list --repo "$GH_REPO" --head "$FIX_BRANCH" --state open \
+            --json url --jq '.[0].url // empty')"
+          if [ -n "$PR_URL" ]; then
+            echo "Reusing existing fix PR: $PR_URL"
+            gh pr comment "$PR_NUMBER" --repo "$GH_REPO" --body \
+              ":wrench: Fix branch updated after a re-run: ${PR_URL}"
+            exit 0
+          fi
 
           PR_URL="$(gh pr create --repo "$GH_REPO" \
             --base "$BASE_REF" \
