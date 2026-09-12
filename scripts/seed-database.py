@@ -15,6 +15,7 @@ except ImportError:
 
 DB_PATH = Path(__file__).parent.parent / "backend" / "app.db"
 SEED = 42
+DATA_QUANTITY_UNIT = "MB"
 
 random.seed(SEED)
 fake = Faker()
@@ -34,6 +35,15 @@ PLANS = [
     ("Business Starter", 79.99, 25, 2000, 1000, True),
     ("Business Pro", 149.99, 100, None, None, True),
     ("Student", 24.99, 10, 500, 500, True),
+]
+
+DATA_USAGE_BOUNDARIES = [
+    ("usage.79-9@example.com", "Usage 79.9 Percent", 7, 7990),
+    ("usage.80@example.com", "Usage 80 Percent", 7, 8000),
+    ("usage.99-9@example.com", "Usage 99.9 Percent", 7, 9990),
+    ("usage.100@example.com", "Usage 100 Percent", 7, 10000),
+    ("usage.over@example.com", "Usage Over 100 Percent", 7, 10200),
+    ("usage.unlimited@example.com", "Usage Unlimited", 3, 12500),
 ]
 
 DEVICE_MODELS = [
@@ -183,20 +193,25 @@ def seed_customers(conn: sqlite3.Connection, plan_ids: list[int], count: int = 5
     
     emails_used = set()
     for i in range(count):
-        first_name = fake.first_name()
-        last_name = fake.last_name()
-        
-        base_email = f"{first_name.lower()}.{last_name.lower()}@{fake.free_email_domain()}"
-        email = base_email
-        suffix = 1
-        while email in emails_used:
-            email = f"{first_name.lower()}.{last_name.lower()}{suffix}@{fake.free_email_domain()}"
-            suffix += 1
+        if i < len(DATA_USAGE_BOUNDARIES):
+            email, last_name, plan_index, _ = DATA_USAGE_BOUNDARIES[i]
+            first_name = "Boundary"
+            plan_id = plan_ids[plan_index]
+            status = "ACTIVE"
+        else:
+            first_name = fake.first_name()
+            last_name = fake.last_name()
+            base_email = f"{first_name.lower()}.{last_name.lower()}@{fake.free_email_domain()}"
+            email = base_email
+            suffix = 1
+            while email in emails_used:
+                email = f"{first_name.lower()}.{last_name.lower()}{suffix}@{fake.free_email_domain()}"
+                suffix += 1
+            plan_id = random.choice(plan_ids)
+            status = random.choice(statuses)
         emails_used.add(email)
-        
+
         phone = fake.phone_number()
-        plan_id = random.choice(plan_ids)
-        status = random.choice(statuses)
         balance = round(random.uniform(0, 150), 2) if status == "ACTIVE" else 0
         created_at = now - timedelta(days=random.randint(1, 365))
         
@@ -275,7 +290,7 @@ def seed_devices(conn: sqlite3.Connection, customer_ids: list[int], count: int =
 
 
 def seed_usage_records(conn: sqlite3.Connection, customer_ids: list[int], days: int = 90):
-    """Seed usage records for the past N days."""
+    """Seed usage records for the past N days; DATA quantities are stored in MB."""
     cursor = conn.cursor()
     
     cursor.execute("SELECT id FROM customers WHERE status = 'ACTIVE'")
@@ -284,8 +299,15 @@ def seed_usage_records(conn: sqlite3.Connection, customer_ids: list[int], days: 
     now = datetime.now()
     usage_types = ["CALL", "DATA", "SMS"]
     records = []
-    
+
+    cursor.execute(
+        f"SELECT id, email FROM customers WHERE email IN ({','.join('?' * len(DATA_USAGE_BOUNDARIES))})",
+        [boundary[0] for boundary in DATA_USAGE_BOUNDARIES],
+    )
+    boundary_customer_ids = {row[0] for row in cursor.fetchall()}
+
     print(f"Creating usage records for {days} days...")
+    print(f"  DATA quantity unit: {DATA_QUANTITY_UNIT}")
     
     for day_offset in range(days):
         record_date = now - timedelta(days=day_offset)
@@ -293,6 +315,8 @@ def seed_usage_records(conn: sqlite3.Connection, customer_ids: list[int], days: 
         
         for customer_id in active_customer_ids:
             for usage_type in usage_types:
+                if usage_type == "DATA" and customer_id in boundary_customer_ids:
+                    continue
                 if random.random() > 0.25:
                     num_records = random.randint(1, 5) if is_weekday else random.randint(1, 3)
                     
@@ -307,6 +331,7 @@ def seed_usage_records(conn: sqlite3.Connection, customer_ids: list[int], days: 
                             quantity = random.randint(1, 45)
                             cost = round(quantity * 0.05, 2)
                         elif usage_type == "DATA":
+                            # DATA quantities use decimal megabytes: 1000 MB = 1 GB.
                             quantity = random.randint(10, 800)
                             cost = round(quantity * 0.01, 2)
                         else:
@@ -314,9 +339,26 @@ def seed_usage_records(conn: sqlite3.Connection, customer_ids: list[int], days: 
                             cost = round(quantity * 0.02, 2)
                         
                         records.append((customer_id, usage_type, quantity, cost, to_sqlite_timestamp(record_time)))
-        
+
         if (day_offset + 1) % 10 == 0:
             print(f"  Processed {day_offset + 1}/{days} days ({len(records)} records so far)")
+
+    boundary_record_time = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    cursor.execute(
+        f"SELECT id, email FROM customers WHERE email IN ({','.join('?' * len(DATA_USAGE_BOUNDARIES))})",
+        [boundary[0] for boundary in DATA_USAGE_BOUNDARIES],
+    )
+    customer_ids_by_email = {email: customer_id for customer_id, email in cursor.fetchall()}
+    for email, _, _, quantity_mb in DATA_USAGE_BOUNDARIES:
+        records.append(
+            (
+                customer_ids_by_email[email],
+                "DATA",
+                quantity_mb,
+                round(quantity_mb * 0.01, 2),
+                to_sqlite_timestamp(boundary_record_time),
+            )
+        )
     
     cursor.executemany("""
         INSERT INTO usage_records (customer_id, type, quantity, cost, recorded_at)
