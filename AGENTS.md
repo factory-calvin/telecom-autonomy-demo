@@ -41,6 +41,12 @@ This is a telecom admin portal for managing:
 - Use JPA entities with SQLite database (`app.db`)
 - Data seeder in `DataSeeder.java` populates demo data on startup
 
+### CI Security
+
+- Never expose secrets or write-capable repository tokens to code checked out from a pull request head.
+- Workflows that need credentials must run trusted base-branch code and inspect pull request changes through the GitHub API; Jenkins PR jobs must use a trusted default-branch Jenkinsfile or shared library.
+- Pin CI installers to a versioned artifact and verify its checksum or signature instead of piping an unpinned download into a shell.
+
 ## Data Model
 
 | Entity        | Key Fields                                                        |
