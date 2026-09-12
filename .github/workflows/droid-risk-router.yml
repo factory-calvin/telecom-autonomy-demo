@@ -6,13 +6,17 @@ name: Droid Risk Router
 # The same script runs from Jenkins (see ./Jenkinsfile); nothing here is GitHub-specific
 # except how the PR number and tokens arrive.
 
+# Trusted-code boundary: pull_request_target runs THIS file from the base branch, the
+# checkout below is the base branch, and the PR head is only fetched into a ref for
+# diffing. Nothing PR-controlled is ever executed while FACTORY_API_KEY or the write
+# token is in scope. Never add a step that checks out or runs PR-side code here.
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
-  # contents: write is what enablePullRequestAutoMerge needs. It is safe to grant here only
-  # because the job never executes PR-controlled code (see the checkout steps below).
+  # contents: write is what enablePullRequestAutoMerge needs; acceptable only under the
+  # trusted-code boundary described above.
   contents: write
   pull-requests: write
   issues: write
@@ -23,9 +27,8 @@ concurrency:
 
 jobs:
   route:
-    # Trusted-code rule: the script and prompt come from the base branch, and the PR head is
-    # only fetched into a ref for diffing. PR-controlled code is never executed while
-    # FACTORY_API_KEY is in scope. Same-repo PRs only, as a second layer.
+    # Same-repo PRs only: fork PRs are scorable under pull_request_target, but letting a
+    # score alone auto-merge outside contributions is a policy decision not taken here.
     if: >-
       github.event.pull_request.draft == false &&
       github.event.pull_request.head.repo.full_name == github.repository

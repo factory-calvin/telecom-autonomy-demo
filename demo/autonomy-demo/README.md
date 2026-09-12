@@ -43,7 +43,7 @@ Thresholds are repo variables: `RISK_THRESHOLD_LOW` (30), `RISK_THRESHOLD_HIGH` 
 - [ ] Optional: `/install-wiki` in the repo to add the AutoWiki refresh action (auto-docs beat).
 - [ ] Run `/readiness-report` once in this repo from the Factory App or CLI so the readiness dashboard has a baseline.
 - [ ] Automations: leave **active** until the dry run passes, then **pause** until show time so the demo starts from a clean state.
-- [ ] The router workflow, `scripts/risk-router.sh`, and `demo/autonomy-demo/risk-router-prompt.md` must be on `main` **before** the show. The job runs the script from a checkout of the base branch and only fetches the PR head into a ref (`HEAD_REF=pr/head`), so it works for any PR regardless of where it branched, and PR-controlled code is never executed with `FACTORY_API_KEY` in scope.
+- [ ] The router workflow, `scripts/risk-router.sh`, and `demo/autonomy-demo/risk-router-prompt.md` must be on `main` **before** the show. The job runs under `pull_request_target` (workflow file from the base branch), checks out the base branch, and only fetches the PR head into a ref (`HEAD_REF=pr/head`), so it works for any PR regardless of where it branched, and PR-controlled code is never executed with `FACTORY_API_KEY` or the write token in scope. Consequence: a change to the router itself only takes effect after it merges.
 
 ## How the pieces hand off
 
