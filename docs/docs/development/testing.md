@@ -92,3 +92,18 @@ Tests run automatically on:
 - Pull requests to `main`
 
 See `.github/workflows/ci.yml` for configuration.
+
+Pull requests also run the Droid risk router in
+`.github/workflows/droid-risk-router.yml`. The workflow calls:
+
+```bash
+./scripts/risk-router.sh
+```
+
+The router combines a read-only Droid assessment with deterministic minimum scores for
+sensitive paths. It applies a `risk:low`, `risk:medium`, or `risk:high` label and routes
+the pull request to `auto-merge-eligible` or `needs-human-review`. A high-risk result
+fails the check so a human must review it.
+
+The same script runs from `Jenkinsfile` in a multibranch pipeline. Set `PR_NUMBER` when
+running it outside GitHub Actions; Jenkins derives that value from `CHANGE_ID`.
