@@ -21,7 +21,11 @@ concurrency:
 
 jobs:
   route:
-    if: github.event.pull_request.draft == false
+    # Same-repo PRs only: this job checks out and executes PR-head code with FACTORY_API_KEY
+    # in scope, so a fork could otherwise modify scripts/risk-router.sh to exfiltrate it.
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - name: Checkout PR head with history
