@@ -1,0 +1,23 @@
+scripts/seed-database.py
+  5929f626c47a185b 6,299-301
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "52ffb7e1dafab8e2c656bac6274aba4defd920f4",
+  "prompts": {
+    "5929f626c47a185b": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "86b359cb-9363-464c-b7df-b3c1bd49a268",
+        "model": "claude-fable-5.1"
+      },
+      "human_author": "factory-calvin",
+      "messages": [],
+      "total_additions": 4,
+      "total_deletions": 2,
+      "accepted_lines": 4,
+      "overriden_lines": 0
+    }
+  }
+}
