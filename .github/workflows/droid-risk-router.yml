@@ -21,18 +21,22 @@ concurrency:
 
 jobs:
   route:
-    # Same-repo PRs only: this job checks out and executes PR-head code with FACTORY_API_KEY
-    # in scope, so a fork could otherwise modify scripts/risk-router.sh to exfiltrate it.
+    # Trusted-code rule: the script and prompt come from the base branch, and the PR head is
+    # only fetched into a ref for diffing. PR-controlled code is never executed while
+    # FACTORY_API_KEY is in scope. Same-repo PRs only, as a second layer.
     if: >-
       github.event.pull_request.draft == false &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout PR head with history
+      - name: Checkout base branch with history
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.base_ref }}
+
+      - name: Fetch PR head as a ref (not checked out)
+        run: git fetch --no-tags origin "pull/${{ github.event.pull_request.number }}/head:refs/remotes/pr/head"
 
       - name: Install Droid CLI
         run: |
@@ -47,6 +51,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: pr/head
           RISK_THRESHOLD_LOW: ${{ vars.RISK_THRESHOLD_LOW || '30' }}
           RISK_THRESHOLD_HIGH: ${{ vars.RISK_THRESHOLD_HIGH || '70' }}
           RISK_AUTO_MERGE: ${{ vars.RISK_AUTO_MERGE || 'false' }}
