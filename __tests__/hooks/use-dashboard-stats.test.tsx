@@ -7,6 +7,8 @@ const stats = {
   monthly_revenue: 80,
   open_tickets: 5,
   devices_in_use: 7,
+  at_risk_customers: 2,
+  over_limit_customers: 1,
 }
 
 const payloads: Record<string, unknown> = {
@@ -49,6 +51,8 @@ describe("useDashboardStats", () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     expect(result.current.stats).toEqual(stats)
+    expect(result.current.stats?.at_risk_customers).toBe(2)
+    expect(result.current.stats?.over_limit_customers).toBe(1)
     expect(result.current.customersByPlan).toEqual([{ name: "Basic", value: 2 }])
     expect(result.current.devicesByStatus).toEqual([{ name: "ASSIGNED", value: 7 }])
     expect(result.current.ticketsByStatus).toEqual([{ name: "OPEN", value: 5 }])
