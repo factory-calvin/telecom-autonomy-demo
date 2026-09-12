@@ -3,7 +3,7 @@
 
 import sqlite3
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 try:
@@ -296,7 +296,9 @@ def seed_usage_records(conn: sqlite3.Connection, customer_ids: list[int], days: 
     cursor.execute("SELECT id FROM customers WHERE status = 'ACTIVE'")
     active_customer_ids = [row[0] for row in cursor.fetchall()]
     
-    now = datetime.now()
+    # recorded_at is read back as a UTC Instant and DataUsageService cuts the cycle on UTC
+    # month boundaries, so the seeder clock must be UTC or boundary rows can fall outside it.
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     usage_types = ["CALL", "DATA", "SMS"]
     records = []
 
