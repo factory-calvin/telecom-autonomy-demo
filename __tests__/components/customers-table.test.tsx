@@ -16,6 +16,10 @@ const customers: Customer[] = [
     balance: 12.3,
     activated_at: "2026-01-01T00:00:00Z",
     created_at: "2026-01-01T00:00:00Z",
+    current_cycle_data_used_gb: 2.5,
+    data_limit_gb: 15,
+    data_usage_percentage: 16.67,
+    data_usage_state: "WITHIN_LIMIT",
   },
   {
     id: 2,
@@ -29,6 +33,10 @@ const customers: Customer[] = [
     balance: 0,
     activated_at: null,
     created_at: "2026-01-02T00:00:00Z",
+    current_cycle_data_used_gb: 0,
+    data_limit_gb: null,
+    data_usage_percentage: null,
+    data_usage_state: "WITHIN_LIMIT",
   },
 ]
 
