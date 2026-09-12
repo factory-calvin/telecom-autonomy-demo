@@ -7,6 +7,8 @@ export interface DashboardStats {
   monthly_revenue: number
   open_tickets: number
   devices_in_use: number
+  at_risk_customers: number
+  over_limit_customers: number
 }
 
 export interface ChartData {
