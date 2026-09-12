@@ -1,0 +1,27 @@
+demo/autonomy-demo/README.md
+  5929f626c47a185b 46
+.github/workflows/droid-risk-router.yml
+  5929f626c47a185b 24-26,32,36-39,54
+scripts/risk-router.sh
+  5929f626c47a185b 21-23,39,56-58,108,112-115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "8099bd174e376068397483639211bb57f876891a",
+  "prompts": {
+    "5929f626c47a185b": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "86b359cb-9363-464c-b7df-b3c1bd49a268",
+        "model": "claude-fable-5.1"
+      },
+      "human_author": "factory-calvin",
+      "messages": [],
+      "total_additions": 22,
+      "total_deletions": 6,
+      "accepted_lines": 22,
+      "overriden_lines": 0
+    }
+  }
+}
