@@ -43,6 +43,13 @@ Thresholds are repo variables: `RISK_THRESHOLD_LOW` (30), `RISK_THRESHOLD_HIGH` 
 - [ ] Optional: `/install-wiki` in the repo to add the AutoWiki refresh action (auto-docs beat).
 - [ ] Run `/readiness-report` once in this repo from the Factory App or CLI so the readiness dashboard has a baseline.
 - [ ] Automations: leave **active** until the dry run passes, then **pause** until show time so the demo starts from a clean state.
+- [ ] Merge the PR that adds `droid-risk-router.yml` to `main` **before** the show. `pull_request` workflows run from the PR's own branch, so agent PRs branched from `main` get no `route` check until the workflow exists on `main`.
+
+## How the pieces hand off
+
+- **Dependencies.** The Spec Writer puts an `agent-ready` issue that consumes another issue's output (frontend reading a new backend field) in **Backlog** with the line `Depends on: FFA-<n>` in its description. When the dependency's PR merges, the Loop Closer moves it to **Todo** with a `🔓 Unblocked by …` comment, and the Implementer picks it up. The Implementer only implements against what is on `origin/main`; In Review is not enough.
+- **Shared checkout.** All three automations use `/home/factory-user/repos/Telecom-Demo-NextJS-Springboot`. They take `/home/factory-user/automation-state/checkout.lock` (stale after 45 min) so an overlapping run skips with "Another automation run holds the checkout" instead of touching in-flight work. When you work on this computer yourself, use a separate `git worktree add /home/factory-user/repos/wt-<name> <branch>` rather than that checkout, or an Implementer run may start while you have uncommitted changes (it will skip, but you lose the tick).
+- **Java on the Droid Computer.** JDK 25 has no readable default `cacerts`; the Implementer runs Gradle with `JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/tmp/droid-java-cacerts …` built from the system CA bundle. Nothing in the repo changes for this.
 
 ## Dry run (do this before Monday)
 
@@ -71,4 +78,4 @@ If anything did not fire, open the automation's latest run session; the run summ
 - Linear: cancel or archive FFA issues you do not want carried over.
 - GitHub: close/merge PRs; delete `ffa/*`, `rfc/*`, `docs/*`, `agents/*` branches.
 - Notion: remove the `Droid Spec:` callout and reset the status line.
-- Computer: `rm -rf /home/factory-user/automation-state/*` to forget processed signals (the automations recreate it).
+- Computer: `rm -rf /home/factory-user/automation-state/*` to forget processed signals (the automations recreate it). Do this while no run is in flight (`ls /home/factory-user/automation-state/checkout.lock` should fail).
