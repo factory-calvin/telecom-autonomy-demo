@@ -1,6 +1,5 @@
 package com.example.demo.config;
 
-import com.example.demo.model.UsageRecord;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +55,7 @@ class UsageRecordIndexIntegrationTest {
 
         Integer indexCount = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' AND name = ?", Integer.class,
-                UsageRecord.CURRENT_CYCLE_INDEX);
+                DatabaseIndexInitializer.CURRENT_CYCLE_INDEX);
         assertEquals(1, indexCount);
     }
 
@@ -87,7 +86,9 @@ class UsageRecordIndexIntegrationTest {
 
         List<String> plan = jdbcTemplate.query("EXPLAIN QUERY PLAN " + aggregateSql,
                 (resultSet, rowNumber) -> resultSet.getString("detail"));
-        assertTrue(plan.stream().anyMatch(detail -> detail.contains("USING INDEX " + UsageRecord.CURRENT_CYCLE_INDEX)),
+        assertTrue(
+                plan.stream().anyMatch(
+                        detail -> detail.contains("USING INDEX " + DatabaseIndexInitializer.CURRENT_CYCLE_INDEX)),
                 () -> "Expected current-cycle index in query plan, got: " + plan);
     }
 

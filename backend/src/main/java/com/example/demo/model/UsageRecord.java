@@ -5,10 +5,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
-@Table(name = "usage_records", indexes = @Index(name = UsageRecord.CURRENT_CYCLE_INDEX, columnList = "type,customer_id,recorded_at"))
+@Table(name = "usage_records")
 public class UsageRecord {
-
-    public static final String CURRENT_CYCLE_INDEX = "idx_usage_records_type_customer_recorded_at";
 
     public enum Type {
         CALL, DATA, SMS

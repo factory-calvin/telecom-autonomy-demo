@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.config.DatabaseIndexInitializer;
 import com.example.demo.model.Customer;
 import com.example.demo.model.Plan;
 import com.example.demo.model.UsageRecord;
@@ -78,7 +79,9 @@ class UsageRecordRepositoryIntegrationTest {
                 """, (resultSet, rowNumber) -> resultSet.getString("detail"), atRisk.getId(), overLimit.getId(),
                 unlimited.getId(), UsageRecord.Type.DATA.name(), Timestamp.from(CYCLE_START),
                 Timestamp.from(CYCLE_END));
-        assertTrue(plan.stream().anyMatch(detail -> detail.contains("USING INDEX " + UsageRecord.CURRENT_CYCLE_INDEX)),
+        assertTrue(
+                plan.stream().anyMatch(
+                        detail -> detail.contains("USING INDEX " + DatabaseIndexInitializer.CURRENT_CYCLE_INDEX)),
                 () -> "Expected current-cycle index in query plan, got: " + plan);
     }
 

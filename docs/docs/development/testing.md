@@ -88,9 +88,10 @@ This runs frontend tests followed by backend tests.
 
 The current-cycle data aggregation uses the SQLite index
 `idx_usage_records_type_customer_recorded_at` on
-`usage_records(type, customer_id, recorded_at)`. Both the Python schema setup
-and backend startup create the index with `IF NOT EXISTS`, so existing demo
-databases are upgraded without deleting or reseeding data.
+`usage_records(type, customer_id, recorded_at)`. The Python schema setup builds
+the index after bulk loading, while backend startup creates it with
+`IF NOT EXISTS`, so existing demo databases are upgraded without deleting or
+reseeding data.
 
 With the backend running against a production-like database, run:
 
