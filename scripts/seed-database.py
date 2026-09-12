@@ -135,6 +135,11 @@ def create_tables(conn: sqlite3.Connection):
             FOREIGN KEY (customer_id) REFERENCES customers(id)
         )
     """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_usage_records_type_customer_recorded_at
+        ON usage_records (type, customer_id, recorded_at)
+    """)
     
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS support_tickets (
