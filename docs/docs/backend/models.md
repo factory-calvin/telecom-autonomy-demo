@@ -61,9 +61,15 @@ Call, data, and SMS usage history.
 | id | Long | Primary key |
 | customer | Customer | Associated customer |
 | type | Enum | CALL, DATA, SMS |
-| quantity | BigDecimal | Amount used |
+| quantity | BigDecimal | Amount used; DATA records use decimal MB (1000 MB = 1 GB) |
 | cost | BigDecimal | Calculated cost |
 | recordedAt | Instant | Usage timestamp |
+
+Current-cycle usage is the sum of DATA records in the half-open UTC calendar
+month. CALL, SMS, and records outside that interval do not contribute. For a
+10 GB plan, 8,500 MB produces 8.5 GB, 85%, and `AT_RISK`; 10,200 MB produces
+10.2 GB, 102%, and `OVER_LIMIT`. Unlimited plans expose used GB without a
+percentage or threshold count.
 
 ## SupportTicket
 
