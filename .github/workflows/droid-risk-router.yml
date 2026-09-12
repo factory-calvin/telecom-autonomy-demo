@@ -11,7 +11,9 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
-  contents: read
+  # contents: write is what enablePullRequestAutoMerge needs. It is safe to grant here only
+  # because the job never executes PR-controlled code (see the checkout steps below).
+  contents: write
   pull-requests: write
   issues: write
 
