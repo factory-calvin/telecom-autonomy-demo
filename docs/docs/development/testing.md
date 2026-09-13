@@ -84,6 +84,26 @@ pnpm test
 
 This runs frontend tests followed by backend tests.
 
+## Dashboard Stats Performance Benchmark
+
+The current-cycle data aggregation uses the SQLite index
+`idx_usage_records_type_customer_recorded_at` on
+`usage_records(type, customer_id, recorded_at)`. The Python schema setup builds
+the index after bulk loading, while backend startup creates it with
+`IF NOT EXISTS`, so existing demo databases are upgraded without deleting or
+reseeding data.
+
+With the backend running against a production-like database, run:
+
+```bash
+python3 scripts/benchmark-dashboard-stats.py
+```
+
+The benchmark makes 5 warmup requests followed by 30 measured requests. It
+prints p50 and p95 latency plus `EXPLAIN QUERY PLAN` output. The p95 target is
+below 500 ms, and the plan must contain
+`USING INDEX idx_usage_records_type_customer_recorded_at`.
+
 ## CI Integration
 
 Tests run automatically on:
