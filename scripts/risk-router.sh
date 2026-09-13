@@ -84,10 +84,14 @@ fi
 if matches '^AGENTS\.md$|^\.factory/'; then
   bump_floor 40 "agent instructions or skills changed"
 fi
+# Markdown that changes agent or CI behavior is not documentation. AGENTS.md, skills, and
+# workflow files must never fall under the docs-only cap, or a floor above the cap would be
+# silently erased and an instruction change could self-merge.
 DOCS_ONLY=true
 while IFS= read -r f; do
   [[ -z "$f" ]] && continue
   case "$f" in
+    AGENTS.md|.factory/*|.github/*|Jenkinsfile|.husky/*) DOCS_ONLY=false ;;
     docs/*|*.md|*.mdx) ;;
     *) DOCS_ONLY=false ;;
   esac
@@ -95,6 +99,10 @@ done <<< "$CHANGED_FILES"
 if [[ "$DOCS_ONLY" == true && "$FILE_COUNT" -gt 0 ]]; then
   CAP=20
   FLOOR_REASONS+=("docs-only change (cap 20)")
+fi
+if (( CAP < FLOOR )); then
+  # A floor is a hard minimum; a cap can only lower scores above the floor.
+  CAP=$FLOOR
 fi
 
 # ---------------------------------------------------------------------------
@@ -148,8 +156,18 @@ AGENT_SCORE="$(jq -r '.risk_score' <<< "$AGENT_JSON")"
 FINAL=$(( AGENT_SCORE > FLOOR ? AGENT_SCORE : FLOOR ))
 (( FINAL > CAP )) && FINAL=$CAP
 
-if (( FINAL < THRESHOLD_LOW )); then
+# Changes to the agent's own instructions or the review pipeline are always a human
+# decision, whatever the score says.
+INSTRUCTION_CHANGE=false
+if matches '^AGENTS\.md$|^\.factory/|^\.github/workflows/|^Jenkinsfile$|^scripts/risk-router\.sh$|^demo/autonomy-demo/risk-router-prompt\.md$'; then
+  INSTRUCTION_CHANGE=true
+fi
+
+if (( FINAL < THRESHOLD_LOW )) && [[ "$INSTRUCTION_CHANGE" == false ]]; then
   LEVEL=low;    ROUTE=auto-merge-eligible;  REMOVE=needs-human-review
+elif (( FINAL < THRESHOLD_LOW )); then
+  LEVEL=low;    ROUTE=needs-human-review;   REMOVE=auto-merge-eligible
+  FLOOR_REASONS+=("agent instructions or review pipeline changed: never auto-merge")
 elif (( FINAL < THRESHOLD_HIGH )); then
   LEVEL=medium; ROUTE=needs-human-review;   REMOVE=auto-merge-eligible
 else
@@ -234,7 +252,7 @@ else
   gh pr comment "$PR_NUMBER" -R "$REPO" --body-file "$COMMENT_FILE" >/dev/null
 fi
 
-if [[ "$LEVEL" == "low" && "$AUTO_MERGE" == "true" ]]; then
+if [[ "$ROUTE" == "auto-merge-eligible" && "$AUTO_MERGE" == "true" ]]; then
   gh pr merge "$PR_NUMBER" -R "$REPO" --auto --squash && echo "▶ auto-merge enabled" || echo "auto-merge not enabled (repo setting or protection)" >&2
 fi
 
