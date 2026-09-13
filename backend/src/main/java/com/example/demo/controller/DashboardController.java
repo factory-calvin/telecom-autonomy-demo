@@ -4,6 +4,9 @@ import com.example.demo.model.Customer;
 import com.example.demo.model.Device;
 import com.example.demo.model.SupportTicket;
 import com.example.demo.repository.*;
+import com.example.demo.service.DataUsageService;
+import com.example.demo.service.DataUsageService.DataUsage;
+import com.example.demo.service.DataUsageService.DataUsageState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
@@ -23,13 +26,16 @@ public class DashboardController {
     private final PlanRepository planRepository;
     private final DeviceRepository deviceRepository;
     private final SupportTicketRepository ticketRepository;
+    private final DataUsageService dataUsageService;
 
     public DashboardController(CustomerRepository customerRepository, PlanRepository planRepository,
-            DeviceRepository deviceRepository, SupportTicketRepository ticketRepository) {
+            DeviceRepository deviceRepository, SupportTicketRepository ticketRepository,
+            DataUsageService dataUsageService) {
         this.customerRepository = customerRepository;
         this.planRepository = planRepository;
         this.deviceRepository = deviceRepository;
         this.ticketRepository = ticketRepository;
+        this.dataUsageService = dataUsageService;
     }
 
     @GetMapping("/stats")
@@ -46,9 +52,17 @@ public class DashboardController {
 
         long devicesInUse = deviceRepository.countByStatus(Device.Status.ASSIGNED);
 
-        log.debug("Dashboard stats: activeCustomers={}, monthlyRevenue={}, openTickets={}, devicesInUse={}",
-                activeCustomers, monthlyRevenue, openTickets, devicesInUse);
-        return new DashboardStats(activeCustomers, monthlyRevenue, openTickets, devicesInUse);
+        Map<Long, DataUsage> usageByCustomer = dataUsageService.calculate(customerRepository.findAll());
+        long atRiskCustomers = usageByCustomer.values().stream()
+                .filter(usage -> usage.state() == DataUsageState.AT_RISK).count();
+        long overLimitCustomers = usageByCustomer.values().stream()
+                .filter(usage -> usage.state() == DataUsageState.OVER_LIMIT).count();
+
+        log.debug(
+                "Dashboard stats: activeCustomers={}, monthlyRevenue={}, openTickets={}, devicesInUse={}, atRiskCustomers={}, overLimitCustomers={}",
+                activeCustomers, monthlyRevenue, openTickets, devicesInUse, atRiskCustomers, overLimitCustomers);
+        return new DashboardStats(activeCustomers, monthlyRevenue, openTickets, devicesInUse, atRiskCustomers,
+                overLimitCustomers);
     }
 
     @GetMapping("/customers-by-plan")
@@ -96,7 +110,7 @@ public class DashboardController {
     }
 
     public record DashboardStats(long active_customers, BigDecimal monthly_revenue, long open_tickets,
-            long devices_in_use) {
+            long devices_in_use, long at_risk_customers, long over_limit_customers) {
     }
 
     public record ChartData(String name, long value) {

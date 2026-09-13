@@ -4,6 +4,8 @@ import com.example.demo.model.Customer;
 import com.example.demo.model.Plan;
 import com.example.demo.repository.CustomerRepository;
 import com.example.demo.repository.PlanRepository;
+import com.example.demo.repository.UsageRecordRepository;
+import com.example.demo.service.DataUsageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -32,23 +34,33 @@ class CustomerControllerTest {
 
     private final CustomerRepository repository = mock(CustomerRepository.class);
     private final PlanRepository planRepository = mock(PlanRepository.class);
+    private final UsageRecordRepository usageRecordRepository = mock(UsageRecordRepository.class);
 
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new CustomerController(repository, planRepository)).build();
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(
+                        new CustomerController(repository, planRepository, new DataUsageService(usageRecordRepository)))
+                .build();
     }
 
     @Test
     void getAllCustomersFlattensPlanOntoTheResponse() throws Exception {
         when(repository.findAll()).thenReturn(List.of(customer(1L, plan(2L, "Standard", "40.00"))));
+        when(usageRecordRepository.sumQuantityByCustomerForCycle(any(), any(), any(), any()))
+                .thenReturn(List.<Object[]>of(new Object[] {1L, new BigDecimal("8500")}));
 
         mockMvc.perform(get("/api/customers")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].first_name").value("First1"))
                 .andExpect(jsonPath("$[0].last_name").value("Last1")).andExpect(jsonPath("$[0].plan_id").value(2))
                 .andExpect(jsonPath("$[0].plan_name").value("Standard"))
-                .andExpect(jsonPath("$[0].status").value("ACTIVE"));
+                .andExpect(jsonPath("$[0].status").value("ACTIVE"))
+                .andExpect(jsonPath("$[0].current_cycle_data_used_gb").value(8.5))
+                .andExpect(jsonPath("$[0].data_limit_gb").value(10))
+                .andExpect(jsonPath("$[0].data_usage_percentage").value(85))
+                .andExpect(jsonPath("$[0].data_usage_state").value("AT_RISK"));
     }
 
     @Test
