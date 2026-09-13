@@ -63,6 +63,27 @@ Thresholds are repo variables: `RISK_THRESHOLD_LOW` (30), `RISK_THRESHOLD_HIGH` 
 
 If anything did not fire, open the automation's latest run session; the run summary says exactly which tool call failed.
 
+## State as staged for Monday (after the dry run)
+
+The dry run completed the full loop once, so the show does not start from zero; it starts from a repo that already carries the first market rule.
+
+- **Already on `main`:** RFC `docs/docs/rfcs/2026-09-12-data-overage-protection.md` (PR #2), FFA-3 usage metrics (PR #4), FFA-8 dashboard index (PR #7), FFA-6 usage-risk UI (PR #8), the router and its fixes (PRs #1, #6, #9), docs PRs (#5, #10), and the `agents:` proposal (PR #3, `AGENTS.md` CI Security section).
+- **Linear FFA:** FFA-3, FFA-6, FFA-7, FFA-8 Done. FFA-1, FFA-2, FFA-4, FFA-5 stay in Backlog as `needs-human` (they are the open decisions from the RFC; leave them, they are part of the story).
+- **Notion:** `Calvin_DemoDoc` (MR-2026-14) carries its `Droid Spec:` callout. A second page, **"Market rule MR-2026-19: Support Response-Time Transparency"**, sits underneath it with `Status: Draft`. That page is Monday's signal.
+- **Automations:** paused. `RISK_AUTO_MERGE=true` and "Allow auto-merge" are on, so `low` PRs merge themselves; `medium`/`high` wait for a human.
+- **Ruleset on `main`:** requires the `route` check; admins bypass. Leave "Require an additional approval for unattributed Copilot pull requests" as it is; it does not affect the flow.
+
+### Start-of-show checklist (10 minutes before)
+
+1. Factory → Automations: **resume** FFA 1, FFA 2, FFA 3. Confirm `ls /home/factory-user/automation-state/checkout.lock` fails (no stale lock) and the shared checkout is clean on `main`.
+2. `gh pr list` in the repo shows nothing open. `gh workflow view "Droid Risk Router"` is enabled.
+3. Open in tabs: the MR-2026-19 Notion page, Linear FFA board, GitHub PR list, Factory Automations (FFA 1 run list), `#demo-req-channel`, `#demo-alerts-channel`.
+4. Beat 1: change the first line of the MR-2026-19 page from `Status: Draft` to `Status: Ready for Spec`. The Spec Writer ticks every 10 minutes (`*/10`), so the RFC PR lands within 10 minutes; the Implementer's first PR within roughly 20 to 30 minutes after that. Fill that time with beats 3 and 5 (readiness, Jenkinsfile), which need no new state.
+5. Beat 6: when a `medium`/`high` PR arrives, review it on stage and merge with `gh pr merge <n> --squash` (add `--admin` if the ruleset blocks; `route` is required and passes for medium).
+6. Beat 7: post in `#demo-alerts-channel`, e.g. `ALERT prod: GET /api/tickets p95 latency 4.1s since deploy of <sha>; Care queue page timing out`. The Loop Closer ticks every 15 minutes (`*/15`).
+
+If you want to rehearse again before Monday, follow "Reset between runs" and re-stage the MR-2026-19 page to `Status: Draft` (delete its `Droid Spec:` callout).
+
 ## Show flow (maps to the customer's beats)
 
 1. **Signal in.** Show the Notion doc (or Slack thread). Flip the last line to `Status: Ready for Spec`.
