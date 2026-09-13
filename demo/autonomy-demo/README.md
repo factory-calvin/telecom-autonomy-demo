@@ -31,7 +31,7 @@ Review routing is event-driven, not scheduled:
 | `.github/workflows/droid-risk-router.yml` → `scripts/risk-router.sh` | Read-only `droid exec` scores the PR 0–100; deterministic path rules add floors (CI config 70, schema/deps 50, API 40, agent instructions 40) and a docs-only cap (20). Labels `risk:*` plus `auto-merge-eligible` or `needs-human-review`; high risk fails the check. Comment shows the trailing 30-day **human-review rate**. |
 | `Jenkinsfile`                                                        | Same script in a plain `sh` step of a Multibranch Pipeline (`CHANGE_ID` → `PR_NUMBER`). Proves headless Droid is just a CLI.                                                                                                                                                                                                    |
 
-Thresholds are repo variables: `RISK_THRESHOLD_LOW` (30), `RISK_THRESHOLD_HIGH` (70), `RISK_AUTO_MERGE` (`false`). Lowering the thresholds over time is the trust curve.
+Thresholds are repo variables: `RISK_THRESHOLD_LOW` (30), `RISK_THRESHOLD_HIGH` (70), `RISK_AUTO_MERGE` (`false`). Lowering the thresholds over time is the trust curve. Two things never auto-merge regardless of score: changes to the agent's instructions (`AGENTS.md`, `.factory/`) and changes to the review pipeline itself (workflows, `Jenkinsfile`, the router script and prompt). Those files are also excluded from the docs-only cap.
 
 ## One-time setup checklist
 
