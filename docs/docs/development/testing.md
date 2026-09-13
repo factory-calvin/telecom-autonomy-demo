@@ -125,5 +125,10 @@ sensitive paths. It applies a `risk:low`, `risk:medium`, or `risk:high` label an
 the pull request to `auto-merge-eligible` or `needs-human-review`. A high-risk result
 fails the check so a human must review it.
 
+Changes to agent instructions (`AGENTS.md` and `.factory/`) or the review pipeline
+(`.github/workflows/`, `Jenkinsfile`, the router script, and its prompt) always route to
+`needs-human-review`, regardless of score. These files are excluded from the docs-only
+risk cap and never auto-merge.
+
 The same script runs from `Jenkinsfile` in a multibranch pipeline. Set `PR_NUMBER` when
 running it outside GitHub Actions; Jenkins derives that value from `CHANGE_ID`.
