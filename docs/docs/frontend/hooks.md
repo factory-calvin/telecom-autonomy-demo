@@ -15,6 +15,11 @@ const { customers, loading, error, refresh, createCustomer, updateCustomer, dele
   useCustomers()
 ```
 
+Each `Customer` includes `current_cycle_data_used_gb`, `data_limit_gb`,
+`data_usage_percentage`, and `data_usage_state`. The semantic state is one of
+`WITHIN_LIMIT`, `AT_RISK`, `OVER_LIMIT`, or `UNLIMITED`; consumers must use that state for
+filtering instead of recalculating thresholds.
+
 ### usePlans
 
 ```tsx
@@ -75,7 +80,7 @@ const { records, loading, loadingMore, hasNext, loadMore } = useUsage({
 
 ```tsx
 const { stats, loading, error } = useDashboardStats()
-// stats: { active_customers, monthly_revenue, open_tickets, devices_in_use }
+// stats also includes at_risk_customers and over_limit_customers for the current cycle
 ```
 
 ## Hook Patterns

@@ -36,6 +36,14 @@ import {
 } from "@/hooks/use-customers"
 import { usePlans } from "@/hooks/use-plans"
 
+type UsageRiskFilter = "ALL" | "AT_RISK" | "OVER_LIMIT"
+
+const usageRiskFilters: { value: UsageRiskFilter; label: string }[] = [
+  { value: "ALL", label: "All customers" },
+  { value: "AT_RISK", label: "At risk" },
+  { value: "OVER_LIMIT", label: "Over limit" },
+]
+
 export default function CustomersPage() {
   const { customers, loading, error, createCustomer, updateCustomer, deleteCustomer } =
     useCustomers()
@@ -45,6 +53,12 @@ export default function CustomersPage() {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null)
+  const [usageRiskFilter, setUsageRiskFilter] = useState<UsageRiskFilter>("ALL")
+
+  const filteredCustomers =
+    usageRiskFilter === "ALL"
+      ? customers
+      : customers.filter((customer) => customer.data_usage_state === usageRiskFilter)
 
   const handleAdd = () => {
     setEditingCustomer(null)
@@ -103,12 +117,33 @@ export default function CustomersPage() {
         </header>
         <div className="flex flex-1 flex-col gap-4 overflow-hidden p-4 pt-0">
           <Card className="flex flex-1 flex-col overflow-hidden">
-            <CardHeader className="flex shrink-0 flex-row items-center justify-between space-y-0 pb-4">
+            <CardHeader className="flex shrink-0 flex-col items-stretch gap-3 space-y-0 pb-4 sm:flex-row sm:items-center sm:justify-between">
               <CardTitle className="text-headline-2">Customers</CardTitle>
-              <Button onClick={handleAdd}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Customer
-              </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-muted-foreground text-sm">Usage risk</span>
+                <div
+                  className="flex flex-wrap gap-1"
+                  role="group"
+                  aria-label="Current-cycle data usage filter"
+                >
+                  {usageRiskFilters.map((filter) => (
+                    <Button
+                      key={filter.value}
+                      type="button"
+                      size="sm"
+                      variant={usageRiskFilter === filter.value ? "default" : "outline"}
+                      aria-pressed={usageRiskFilter === filter.value}
+                      onClick={() => setUsageRiskFilter(filter.value)}
+                    >
+                      {filter.label}
+                    </Button>
+                  ))}
+                </div>
+                <Button onClick={handleAdd}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Customer
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="flex-1 overflow-hidden">
               {loading ? (
@@ -118,7 +153,7 @@ export default function CustomersPage() {
               ) : (
                 <div className="h-full overflow-auto">
                   <CustomersTable
-                    customers={customers}
+                    customers={filteredCustomers}
                     onEdit={handleEdit}
                     onDelete={handleDeleteClick}
                   />
