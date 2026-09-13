@@ -68,7 +68,7 @@ If anything did not fire, open the automation's latest run session; the run summ
 The dry run completed the full loop once, so the show does not start from zero; it starts from a repo that already carries the first market rule.
 
 - **Already on `main`:** RFC `docs/docs/rfcs/2026-09-12-data-overage-protection.md` (PR #2), FFA-3 usage metrics (PR #4), FFA-8 dashboard index (PR #7), FFA-6 usage-risk UI (PR #8), the router and its fixes (PRs #1, #6, #9), docs PRs (#5, #10), and the `agents:` proposal (PR #3, `AGENTS.md` CI Security section).
-- **Linear FFA:** FFA-3, FFA-6, FFA-7, FFA-8 Done. FFA-1, FFA-2, FFA-4, FFA-5 stay in Backlog as `needs-human` (they are the open decisions from the RFC; leave them, they are part of the story).
+- **Linear FFA:** FFA-3, FFA-6, FFA-7, FFA-8 Done. FFA-9 (`agent-instructions`, `needs-human`) is open and points at PR #12. FFA-1, FFA-2, FFA-4, FFA-5 stay in Backlog as `needs-human` (they are the open decisions from the RFC; leave them, they are part of the story).
 - **Notion:** `Calvin_DemoDoc` (MR-2026-14) carries its `Droid Spec:` callout. A second page, **"Market rule MR-2026-19: Support Response-Time Transparency"**, sits underneath it with `Status: Draft`. That page is Monday's signal.
 - **Automations:** paused. `RISK_AUTO_MERGE=true` and "Allow auto-merge" are on, so `low` PRs merge themselves; `medium`/`high` wait for a human.
 - **Ruleset on `main`:** requires the `route` check; admins bypass. Leave "Require an additional approval for unattributed Copilot pull requests" as it is; it does not affect the flow.
@@ -76,7 +76,7 @@ The dry run completed the full loop once, so the show does not start from zero; 
 ### Start-of-show checklist (10 minutes before)
 
 1. Factory → Automations: **resume** FFA 1, FFA 2, FFA 3. Confirm `ls /home/factory-user/automation-state/checkout.lock` fails (no stale lock) and the shared checkout is clean on `main`.
-2. `gh pr list` in the repo shows nothing open. `gh workflow view "Droid Risk Router"` is enabled.
+2. `gh pr list` in the repo shows exactly one open PR: **#12 `chore(agents): document Droid Java trust store`** (with Linear FFA-9). It is left open on purpose as the beat-7 exhibit: the agent proposing a change to its own instructions after two PRs lost a validation attempt to the same environment quirk, routed `needs-human-review`, waiting for you. Do not merge it before the show. `gh workflow view "Droid Risk Router"` is enabled.
 3. Open in tabs: the MR-2026-19 Notion page, Linear FFA board, GitHub PR list, Factory Automations (FFA 1 run list), `#demo-req-channel`, `#demo-alerts-channel`.
 4. Beat 1: change the first line of the MR-2026-19 page from `Status: Draft` to `Status: Ready for Spec`. The Spec Writer ticks every 10 minutes (`*/10`), so the RFC PR lands within 10 minutes; the Implementer's first PR within roughly 20 to 30 minutes after that. Fill that time with beats 3 and 5 (readiness, Jenkinsfile), which need no new state.
 5. Beat 6: when a `medium`/`high` PR arrives, review it on stage and merge with `gh pr merge <n> --squash` (add `--admin` if the ruleset blocks; `route` is required and passes for medium).
