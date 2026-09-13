@@ -14,6 +14,10 @@ export interface Customer {
   balance: number
   activated_at: string | null
   created_at: string | null
+  current_cycle_data_used_gb: number
+  data_limit_gb: number | null
+  data_usage_percentage: number | null
+  data_usage_state: "WITHIN_LIMIT" | "AT_RISK" | "OVER_LIMIT" | "UNLIMITED"
 }
 
 export interface CustomerCreate {

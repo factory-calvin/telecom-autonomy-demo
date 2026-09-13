@@ -1,0 +1,73 @@
+name: Droid Risk Router
+
+# Risk-based review routing: a read-only `droid exec` scores the PR, deterministic path
+# rules apply floors/caps, and the shell step labels the PR `auto-merge-eligible` or
+# `needs-human-review`. High risk fails this check so branch protection can block merge.
+# The same script runs from Jenkins (see ./Jenkinsfile); nothing here is GitHub-specific
+# except how the PR number and tokens arrive.
+
+# Trusted-code boundary: pull_request_target runs THIS file from the base branch, the
+# checkout below is the base branch, and the PR head is only fetched into a ref for
+# diffing. Nothing PR-controlled is ever executed while FACTORY_API_KEY or the write
+# token is in scope. Never add a step that checks out or runs PR-side code here.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  # contents: write is what enablePullRequestAutoMerge needs; acceptable only under the
+  # trusted-code boundary described above.
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: risk-router-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  route:
+    # Same-repo PRs only: fork PRs are scorable under pull_request_target, but letting a
+    # score alone auto-merge outside contributions is a policy decision not taken here.
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout base branch with history
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.base_ref }}
+
+      - name: Fetch PR head as a ref (not checked out)
+        run: git fetch --no-tags origin "pull/${{ github.event.pull_request.number }}/head:refs/remotes/pr/head"
+
+      - name: Install Droid CLI
+        run: |
+          curl -fsSL https://app.factory.ai/cli | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.factory/bin" >> "$GITHUB_PATH"
+
+      - name: Score and route the pull request
+        env:
+          FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: pr/head
+          RISK_THRESHOLD_LOW: ${{ vars.RISK_THRESHOLD_LOW || '30' }}
+          RISK_THRESHOLD_HIGH: ${{ vars.RISK_THRESHOLD_HIGH || '70' }}
+          RISK_AUTO_MERGE: ${{ vars.RISK_AUTO_MERGE || 'false' }}
+        run: |
+          droid --version
+          ./scripts/risk-router.sh
+
+      - name: Upload routing decision
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: risk-router-pr-${{ github.event.pull_request.number }}
+          path: risk-router/
+          if-no-files-found: ignore

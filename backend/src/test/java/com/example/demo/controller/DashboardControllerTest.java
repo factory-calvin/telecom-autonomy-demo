@@ -8,6 +8,8 @@ import com.example.demo.repository.CustomerRepository;
 import com.example.demo.repository.DeviceRepository;
 import com.example.demo.repository.PlanRepository;
 import com.example.demo.repository.SupportTicketRepository;
+import com.example.demo.repository.UsageRecordRepository;
+import com.example.demo.service.DataUsageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,6 +31,7 @@ class DashboardControllerTest {
     private final PlanRepository planRepository = mock(PlanRepository.class);
     private final DeviceRepository deviceRepository = mock(DeviceRepository.class);
     private final SupportTicketRepository ticketRepository = mock(SupportTicketRepository.class);
+    private final UsageRecordRepository usageRecordRepository = mock(UsageRecordRepository.class);
 
     private MockMvc mockMvc;
 
@@ -38,10 +41,8 @@ class DashboardControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders
-                .standaloneSetup(
-                        new DashboardController(customerRepository, planRepository, deviceRepository, ticketRepository))
-                .build();
+        mockMvc = MockMvcBuilders.standaloneSetup(new DashboardController(customerRepository, planRepository,
+                deviceRepository, ticketRepository, new DataUsageService(usageRecordRepository))).build();
 
         Plan basic = plan(1L, "Basic", "20.00");
         Plan standard = plan(2L, "Standard", "40.00");
@@ -62,6 +63,8 @@ class DashboardControllerTest {
         when(planRepository.findAll()).thenReturn(List.of(basic, standard, premium));
         when(ticketRepository.countByStatusIn(any())).thenReturn(5L);
         when(deviceRepository.countByStatus(Device.Status.ASSIGNED)).thenReturn(7L);
+        when(usageRecordRepository.sumQuantityByCustomerForCycle(any(), any(), any(), any())).thenReturn(
+                List.of(new Object[] {1L, new BigDecimal("8500")}, new Object[] {2L, new BigDecimal("10200")}));
     }
 
     @Test
@@ -69,7 +72,8 @@ class DashboardControllerTest {
         mockMvc.perform(get("/api/dashboard/stats")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.active_customers").value(3))
                 .andExpect(jsonPath("$.monthly_revenue").value(80.00)).andExpect(jsonPath("$.open_tickets").value(5))
-                .andExpect(jsonPath("$.devices_in_use").value(7));
+                .andExpect(jsonPath("$.devices_in_use").value(7)).andExpect(jsonPath("$.at_risk_customers").value(1))
+                .andExpect(jsonPath("$.over_limit_customers").value(1));
     }
 
     @Test

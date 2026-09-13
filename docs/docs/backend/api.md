@@ -36,9 +36,20 @@ Base URL: `http://localhost:8080/api`
   "status": "ACTIVE",
   "balance": "45.00",
   "activated_at": "2024-01-15T10:30:00Z",
-  "created_at": "2024-01-01T00:00:00Z"
+  "created_at": "2024-01-01T00:00:00Z",
+  "current_cycle_data_used_gb": 8.5,
+  "data_limit_gb": 10,
+  "data_usage_percentage": 85,
+  "data_usage_state": "AT_RISK"
 }
 ```
+
+Current-cycle data uses the half-open UTC calendar month: the first day at
+`00:00:00Z` is included and the first day of the following month is excluded.
+`data_usage_percentage` is omitted (`null`) for Unlimited plans, while
+`current_cycle_data_used_gb` remains available. The semantic state is one of
+`WITHIN_LIMIT`, `AT_RISK`, `OVER_LIMIT`, or `UNLIMITED`; 80% is inclusive for
+`AT_RISK`, and 100% is inclusive for `OVER_LIMIT`.
 
 ## Plans
 
@@ -103,6 +114,11 @@ Base URL: `http://localhost:8080/api`
 | GET | `/dashboard/devices-by-status` | Chart data |
 | GET | `/dashboard/tickets-by-status` | Chart data |
 | GET | `/dashboard/revenue-by-plan` | Chart data |
+
+`GET /dashboard/stats` includes `at_risk_customers` and
+`over_limit_customers`. Both counts use the same current-cycle calculation as
+the customer projection, count each customer once, and exclude Unlimited
+plans.
 
 ## Interactive Docs
 

@@ -4,6 +4,8 @@ import com.example.demo.model.Customer;
 import com.example.demo.model.Plan;
 import com.example.demo.repository.CustomerRepository;
 import com.example.demo.repository.PlanRepository;
+import com.example.demo.service.DataUsageService;
+import com.example.demo.service.DataUsageService.DataUsage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/customers")
@@ -20,16 +23,22 @@ public class CustomerController {
 
     private final CustomerRepository repository;
     private final PlanRepository planRepository;
+    private final DataUsageService dataUsageService;
 
-    public CustomerController(CustomerRepository repository, PlanRepository planRepository) {
+    public CustomerController(CustomerRepository repository, PlanRepository planRepository,
+            DataUsageService dataUsageService) {
         this.repository = repository;
         this.planRepository = planRepository;
+        this.dataUsageService = dataUsageService;
     }
 
     @GetMapping
     public List<CustomerResponse> getAllCustomers() {
         log.info("Fetching all customers");
-        List<CustomerResponse> customers = repository.findAll().stream().map(CustomerResponse::from).toList();
+        List<Customer> entities = repository.findAll();
+        Map<Long, DataUsage> usageByCustomer = dataUsageService.calculate(entities);
+        List<CustomerResponse> customers = entities.stream()
+                .map(customer -> CustomerResponse.from(customer, usageByCustomer.get(customer.getId()))).toList();
         log.debug("Found {} customers", customers.size());
         return customers;
     }
@@ -39,7 +48,8 @@ public class CustomerController {
         log.info("Fetching customer with id={}", id);
         return repository.findById(id).map(customer -> {
             log.debug("Found customer: {}", customer.getEmail());
-            return ResponseEntity.ok(CustomerResponse.from(customer));
+            DataUsage usage = dataUsageService.calculate(List.of(customer)).get(customer.getId());
+            return ResponseEntity.ok(CustomerResponse.from(customer, usage));
         }).orElseGet(() -> {
             log.warn("Customer not found: id={}", id);
             return ResponseEntity.notFound().build();
@@ -61,7 +71,8 @@ public class CustomerController {
         }
         Customer saved = repository.save(customer);
         log.info("Customer created: id={}, email={}", saved.getId(), saved.getEmail());
-        return ResponseEntity.ok(CustomerResponse.from(saved));
+        DataUsage usage = dataUsageService.calculate(List.of(saved)).get(saved.getId());
+        return ResponseEntity.ok(CustomerResponse.from(saved, usage));
     }
 
     @PutMapping("/{id}")
@@ -84,7 +95,8 @@ public class CustomerController {
             }
             Customer saved = repository.save(customer);
             log.info("Customer updated: id={}, email={}", saved.getId(), saved.getEmail());
-            return ResponseEntity.ok(CustomerResponse.from(saved));
+            DataUsage usage = dataUsageService.calculate(List.of(saved)).get(saved.getId());
+            return ResponseEntity.ok(CustomerResponse.from(saved, usage));
         }).orElseGet(() -> {
             log.warn("Customer not found for update: id={}", id);
             return ResponseEntity.notFound().build();
@@ -108,15 +120,18 @@ public class CustomerController {
     }
 
     public record CustomerResponse(Long id, String first_name, String last_name, String email, String phone,
-            Long plan_id, String plan_name, String status, BigDecimal balance, String activated_at, String created_at) {
-        public static CustomerResponse from(Customer customer) {
+            Long plan_id, String plan_name, String status, BigDecimal balance, String activated_at, String created_at,
+            BigDecimal current_cycle_data_used_gb, Integer data_limit_gb, BigDecimal data_usage_percentage,
+            String data_usage_state) {
+        public static CustomerResponse from(Customer customer, DataUsage usage) {
             return new CustomerResponse(customer.getId(), customer.getFirstName(), customer.getLastName(),
                     customer.getEmail(), customer.getPhone(),
                     customer.getPlan() != null ? customer.getPlan().getId() : null,
                     customer.getPlan() != null ? customer.getPlan().getName() : null, customer.getStatus().name(),
                     customer.getBalance(),
                     customer.getActivatedAt() != null ? customer.getActivatedAt().toString() : null,
-                    customer.getCreatedAt() != null ? customer.getCreatedAt().toString() : null);
+                    customer.getCreatedAt() != null ? customer.getCreatedAt().toString() : null, usage.usedDataGb(),
+                    usage.dataLimitGb(), usage.percentage(), usage.state().name());
         }
     }
 }

@@ -103,3 +103,4 @@ qa-results/
 # CI triage skill output (generated per run; the saved replay bundle is committed)
 /ci-triage/
 /nightly-triage/
+risk-router/
