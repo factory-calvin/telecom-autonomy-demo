@@ -44,6 +44,13 @@ Each entity has a table component:
 <CustomersTable customers={customers} onEdit={handleEdit} onDelete={handleDelete} />
 ```
 
+`customers-table.tsx` includes a current-cycle data column. Finite plans show used GB,
+percentage, allowance, and visible `At risk` or `Over limit` text when the API returns
+`AT_RISK` or `OVER_LIMIT`. Unlimited plans show used GB without a percentage, allowance, or
+risk flag. The customers page filters on those semantic API states rather than calculating
+thresholds in the browser. The filter uses pressed buttons with a programmatic group label,
+and risk badges retain visible text in light and dark themes so color is never the only cue.
+
 ### Form Dialogs
 
 CRUD dialogs for creating/editing entities:

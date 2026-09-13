@@ -16,6 +16,7 @@ except ImportError:
 DB_PATH = Path(__file__).parent.parent / "backend" / "app.db"
 SEED = 42
 DATA_QUANTITY_UNIT = "MB"
+CURRENT_CYCLE_INDEX = "idx_usage_records_type_customer_recorded_at"
 
 random.seed(SEED)
 fake = Faker()
@@ -135,7 +136,7 @@ def create_tables(conn: sqlite3.Connection):
             FOREIGN KEY (customer_id) REFERENCES customers(id)
         )
     """)
-    
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS support_tickets (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -150,6 +151,23 @@ def create_tables(conn: sqlite3.Connection):
         )
     """)
     
+    conn.commit()
+
+
+def drop_indexes(conn: sqlite3.Connection):
+    """Drop indexes before destructive reseeding and bulk inserts."""
+    cursor = conn.cursor()
+    cursor.execute(f"DROP INDEX IF EXISTS {CURRENT_CYCLE_INDEX}")
+    conn.commit()
+
+
+def create_indexes(conn: sqlite3.Connection):
+    """Create indexes after bulk inserts."""
+    cursor = conn.cursor()
+    cursor.execute(f"""
+        CREATE INDEX {CURRENT_CYCLE_INDEX}
+        ON usage_records (type, customer_id, recorded_at)
+    """)
     conn.commit()
 
 
@@ -430,6 +448,7 @@ def main():
     
     try:
         create_tables(conn)
+        drop_indexes(conn)
         clear_data(conn)
         
         print()
@@ -438,6 +457,7 @@ def main():
         seed_devices(conn, customer_ids, count=600)
         seed_usage_records(conn, customer_ids, days=90)
         seed_support_tickets(conn, customer_ids, count=250)
+        create_indexes(conn)
         
         print()
         print("=" * 60)

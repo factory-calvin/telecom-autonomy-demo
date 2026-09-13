@@ -12,7 +12,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { HealthStatus } from "@/components/health-status"
 import { useDashboardStats } from "@/hooks/use-dashboard-stats"
-import { Users, DollarSign, Ticket, Smartphone } from "lucide-react"
+import { Users, DollarSign, Ticket, Smartphone, TriangleAlert, CircleAlert } from "lucide-react"
 import {
   ChartContainer,
   ChartTooltip,
@@ -121,7 +121,7 @@ export default function DashboardPage() {
 
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           {/* KPI Cards */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-body-small">Active Customers</CardTitle>
@@ -162,6 +162,26 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="text-headline-2">{stats?.devices_in_use || 0}</div>
                 <p className="text-caption text-muted-foreground">Assigned to customers</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-body-small">At-risk customers</CardTitle>
+                <TriangleAlert className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-headline-2">{stats?.at_risk_customers ?? 0}</div>
+                <p className="text-caption text-muted-foreground">At or above 80% this cycle</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-body-small">Over-limit customers</CardTitle>
+                <CircleAlert className="h-4 w-4 text-red-600 dark:text-red-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-headline-2">{stats?.over_limit_customers ?? 0}</div>
+                <p className="text-caption text-muted-foreground">At or above 100% this cycle</p>
               </CardContent>
             </Card>
           </div>
