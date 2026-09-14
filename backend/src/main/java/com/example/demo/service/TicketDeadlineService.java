@@ -156,7 +156,8 @@ public class TicketDeadlineService {
         if (resolvedAt == null) {
             return null;
         }
-        // A projection asked for a past asOf must not see a resolution that happened later.
+        // A projection asked for a past asOf must not see a resolution that happened
+        // later.
         return resolvedAt.isBefore(asOf) ? resolvedAt : asOf;
     }
 
