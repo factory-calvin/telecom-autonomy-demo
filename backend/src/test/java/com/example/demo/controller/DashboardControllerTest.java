@@ -10,12 +10,16 @@ import com.example.demo.repository.PlanRepository;
 import com.example.demo.repository.SupportTicketRepository;
 import com.example.demo.repository.UsageRecordRepository;
 import com.example.demo.service.DataUsageService;
+import com.example.demo.service.TicketDeadlineService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -41,8 +45,11 @@ class DashboardControllerTest {
 
     @BeforeEach
     void setUp() {
+        TicketDeadlineService ticketDeadlineService = new TicketDeadlineService(ticketRepository,
+                Clock.fixed(Instant.parse("2026-08-17T10:00:01Z"), ZoneOffset.UTC));
         mockMvc = MockMvcBuilders.standaloneSetup(new DashboardController(customerRepository, planRepository,
-                deviceRepository, ticketRepository, new DataUsageService(usageRecordRepository))).build();
+                deviceRepository, ticketRepository, new DataUsageService(usageRecordRepository), ticketDeadlineService))
+                .build();
 
         Plan basic = plan(1L, "Basic", "20.00");
         Plan standard = plan(2L, "Standard", "40.00");
@@ -62,6 +69,7 @@ class DashboardControllerTest {
                 .thenReturn(List.of(activeBasicOne, activeBasicTwo, activeStandard, suspendedPremium));
         when(planRepository.findAll()).thenReturn(List.of(basic, standard, premium));
         when(ticketRepository.countByStatusIn(any())).thenReturn(5L);
+        when(ticketRepository.findByStatusIn(any())).thenReturn(List.of());
         when(deviceRepository.countByStatus(Device.Status.ASSIGNED)).thenReturn(7L);
         when(usageRecordRepository.sumQuantityByCustomerForCycle(any(), any(), any(), any())).thenReturn(
                 List.of(new Object[] {1L, new BigDecimal("8500")}, new Object[] {2L, new BigDecimal("10200")}));
@@ -73,7 +81,27 @@ class DashboardControllerTest {
                 .andExpect(jsonPath("$.active_customers").value(3))
                 .andExpect(jsonPath("$.monthly_revenue").value(80.00)).andExpect(jsonPath("$.open_tickets").value(5))
                 .andExpect(jsonPath("$.devices_in_use").value(7)).andExpect(jsonPath("$.at_risk_customers").value(1))
-                .andExpect(jsonPath("$.over_limit_customers").value(1));
+                .andExpect(jsonPath("$.over_limit_customers").value(1))
+                .andExpect(jsonPath("$.acknowledgement_overdue_tickets").value(0))
+                .andExpect(jsonPath("$.resolution_overdue_tickets").value(0))
+                .andExpect(jsonPath("$.due_soon_tickets").value(0))
+                .andExpect(jsonPath("$.as_of").value("2026-08-17T10:00:01Z"));
+    }
+
+    @Test
+    void statsUsesDeadlineProjectionForThreeSeparateCounts() throws Exception {
+        SupportTicket acknowledgementOverdue = ticket(SupportTicket.Status.OPEN, "2026-08-12T10:00:00Z");
+        SupportTicket resolutionOverdue = ticket(SupportTicket.Status.IN_PROGRESS, "2026-08-03T10:00:00Z");
+        resolutionOverdue.setAcknowledgedAt(Instant.parse("2026-08-04T10:00:00Z"));
+        SupportTicket dueSoon = ticket(SupportTicket.Status.IN_PROGRESS, "2026-08-04T10:00:00Z");
+        dueSoon.setAcknowledgedAt(Instant.parse("2026-08-05T10:00:00Z"));
+        when(ticketRepository.findByStatusIn(any()))
+                .thenReturn(List.of(acknowledgementOverdue, resolutionOverdue, dueSoon));
+
+        mockMvc.perform(get("/api/dashboard/stats").param("asOf", "2026-08-17T10:00:01Z")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.acknowledgement_overdue_tickets").value(1))
+                .andExpect(jsonPath("$.resolution_overdue_tickets").value(1))
+                .andExpect(jsonPath("$.due_soon_tickets").value(1));
     }
 
     @Test
@@ -151,5 +179,12 @@ class DashboardControllerTest {
         customer.setId(id);
         customer.setStatus(status);
         return customer;
+    }
+
+    private static SupportTicket ticket(SupportTicket.Status status, String createdAt) {
+        SupportTicket ticket = new SupportTicket(new Customer(), "Subject", "Description", SupportTicket.Priority.HIGH);
+        ticket.setStatus(status);
+        ticket.setCreatedAt(Instant.parse(createdAt));
+        return ticket;
     }
 }

@@ -7,11 +7,14 @@ import com.example.demo.repository.*;
 import com.example.demo.service.DataUsageService;
 import com.example.demo.service.DataUsageService.DataUsage;
 import com.example.demo.service.DataUsageService.DataUsageState;
+import com.example.demo.service.TicketDeadlineService;
+import com.example.demo.service.TicketDeadlineService.DeadlineCounts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,20 +30,23 @@ public class DashboardController {
     private final DeviceRepository deviceRepository;
     private final SupportTicketRepository ticketRepository;
     private final DataUsageService dataUsageService;
+    private final TicketDeadlineService ticketDeadlineService;
 
     public DashboardController(CustomerRepository customerRepository, PlanRepository planRepository,
             DeviceRepository deviceRepository, SupportTicketRepository ticketRepository,
-            DataUsageService dataUsageService) {
+            DataUsageService dataUsageService, TicketDeadlineService ticketDeadlineService) {
         this.customerRepository = customerRepository;
         this.planRepository = planRepository;
         this.deviceRepository = deviceRepository;
         this.ticketRepository = ticketRepository;
         this.dataUsageService = dataUsageService;
+        this.ticketDeadlineService = ticketDeadlineService;
     }
 
     @GetMapping("/stats")
-    public DashboardStats getStats() {
+    public DashboardStats getStats(@RequestParam(required = false) Instant asOf) {
         log.info("Fetching dashboard stats");
+        Instant effectiveAsOf = asOf != null ? asOf : ticketDeadlineService.now();
         long activeCustomers = customerRepository.countByStatus(Customer.Status.ACTIVE);
 
         BigDecimal monthlyRevenue = customerRepository.findByStatus(Customer.Status.ACTIVE).stream()
@@ -57,12 +63,17 @@ public class DashboardController {
                 .filter(usage -> usage.state() == DataUsageState.AT_RISK).count();
         long overLimitCustomers = usageByCustomer.values().stream()
                 .filter(usage -> usage.state() == DataUsageState.OVER_LIMIT).count();
+        DeadlineCounts deadlineCounts = ticketDeadlineService.countActive(
+                ticketRepository.findByStatusIn(List.of(SupportTicket.Status.OPEN, SupportTicket.Status.IN_PROGRESS)),
+                effectiveAsOf);
 
         log.debug(
-                "Dashboard stats: activeCustomers={}, monthlyRevenue={}, openTickets={}, devicesInUse={}, atRiskCustomers={}, overLimitCustomers={}",
-                activeCustomers, monthlyRevenue, openTickets, devicesInUse, atRiskCustomers, overLimitCustomers);
+                "Dashboard stats: activeCustomers={}, monthlyRevenue={}, openTickets={}, devicesInUse={}, acknowledgementOverdue={}, resolutionOverdue={}, dueSoon={}",
+                activeCustomers, monthlyRevenue, openTickets, devicesInUse, deadlineCounts.acknowledgementOverdue(),
+                deadlineCounts.resolutionOverdue(), deadlineCounts.dueSoon());
         return new DashboardStats(activeCustomers, monthlyRevenue, openTickets, devicesInUse, atRiskCustomers,
-                overLimitCustomers);
+                overLimitCustomers, deadlineCounts.acknowledgementOverdue(), deadlineCounts.resolutionOverdue(),
+                deadlineCounts.dueSoon(), effectiveAsOf.toString());
     }
 
     @GetMapping("/customers-by-plan")
@@ -110,7 +121,9 @@ public class DashboardController {
     }
 
     public record DashboardStats(long active_customers, BigDecimal monthly_revenue, long open_tickets,
-            long devices_in_use, long at_risk_customers, long over_limit_customers) {
+            long devices_in_use, long at_risk_customers, long over_limit_customers,
+            long acknowledgement_overdue_tickets, long resolution_overdue_tickets, long due_soon_tickets,
+            String as_of) {
     }
 
     public record ChartData(String name, long value) {

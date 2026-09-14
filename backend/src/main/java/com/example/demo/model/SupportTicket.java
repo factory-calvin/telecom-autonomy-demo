@@ -43,6 +43,12 @@ public class SupportTicket {
     @Column(name = "resolved_at")
     private Instant resolvedAt;
 
+    @Column(name = "acknowledged_at")
+    private Instant acknowledgedAt;
+
+    @Column(name = "priority_escalated_at")
+    private Instant priorityEscalatedAt;
+
     public SupportTicket() {
     }
 
@@ -124,5 +130,21 @@ public class SupportTicket {
 
     public void setResolvedAt(Instant resolvedAt) {
         this.resolvedAt = resolvedAt;
+    }
+
+    public Instant getAcknowledgedAt() {
+        return acknowledgedAt;
+    }
+
+    public void setAcknowledgedAt(Instant acknowledgedAt) {
+        this.acknowledgedAt = acknowledgedAt;
+    }
+
+    public Instant getPriorityEscalatedAt() {
+        return priorityEscalatedAt;
+    }
+
+    public void setPriorityEscalatedAt(Instant priorityEscalatedAt) {
+        this.priorityEscalatedAt = priorityEscalatedAt;
     }
 }

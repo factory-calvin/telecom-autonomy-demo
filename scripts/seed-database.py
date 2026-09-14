@@ -146,10 +146,19 @@ def create_tables(conn: sqlite3.Connection):
             priority VARCHAR(255) NOT NULL DEFAULT 'MEDIUM',
             status VARCHAR(255) NOT NULL DEFAULT 'OPEN',
             created_at TIMESTAMP NOT NULL,
+            acknowledged_at TIMESTAMP,
             resolved_at TIMESTAMP,
+            priority_escalated_at TIMESTAMP,
             FOREIGN KEY (customer_id) REFERENCES customers(id)
         )
     """)
+
+    existing_ticket_columns = {
+        row[1] for row in cursor.execute("PRAGMA table_info(support_tickets)")
+    }
+    for column in ("acknowledged_at", "priority_escalated_at"):
+        if column not in existing_ticket_columns:
+            cursor.execute(f"ALTER TABLE support_tickets ADD COLUMN {column} TIMESTAMP")
     
     conn.commit()
 
@@ -398,11 +407,44 @@ def seed_support_tickets(conn: sqlite3.Connection, customer_ids: list[int], coun
     
     priorities = ["LOW"] * 20 + ["MEDIUM"] * 50 + ["HIGH"] * 25 + ["URGENT"] * 5
     statuses = ["OPEN"] * 30 + ["IN_PROGRESS"] * 25 + ["RESOLVED"] * 35 + ["CLOSED"] * 10
-    now = datetime.now()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+
+    audit_examples = [
+        ("SLA audit: Monday acknowledgement boundary", "OPEN", "LOW",
+         datetime(2026, 8, 3, 10), None, None),
+        ("SLA audit: weekend acknowledgement boundary", "OPEN", "MEDIUM",
+         datetime(2026, 7, 31, 15), None, None),
+        ("SLA audit: exact due-soon boundary", "OPEN", "HIGH",
+         datetime(2026, 8, 3, 10), None, None),
+        ("SLA audit: acknowledged resolution clock", "IN_PROGRESS", "MEDIUM",
+         datetime(2026, 8, 3, 10), datetime(2026, 8, 4, 10), None),
+        ("SLA audit: resolved outcome", "RESOLVED", "HIGH",
+         datetime(2026, 8, 3, 10), datetime(2026, 8, 4, 10), datetime(2026, 8, 7, 10)),
+        ("SLA audit: closed outcome", "CLOSED", "URGENT",
+         datetime(2026, 7, 31, 15), datetime(2026, 8, 3, 15), datetime(2026, 8, 14, 15)),
+    ]
     
     print(f"Creating {count} support tickets...")
     
-    for i in range(count):
+    for i, (subject, status, priority, created_at, acknowledged_at, resolved_at) in enumerate(audit_examples):
+        cursor.execute("""
+            INSERT INTO support_tickets (
+                customer_id, subject, description, priority, status, created_at,
+                acknowledged_at, resolved_at, priority_escalated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)
+        """, (
+            eligible_customer_ids[i % len(eligible_customer_ids)],
+            subject,
+            "Deterministic SLA boundary example; reproduce with the documented asOf timestamp.",
+            priority,
+            status,
+            to_sqlite_timestamp(created_at),
+            to_sqlite_timestamp(acknowledged_at) if acknowledged_at else None,
+            to_sqlite_timestamp(resolved_at) if resolved_at else None,
+        ))
+
+    for i in range(len(audit_examples), count):
         customer_id = random.choice(eligible_customer_ids)
         subject, description = random.choice(TICKET_SUBJECTS)
         
@@ -421,11 +463,19 @@ def seed_support_tickets(conn: sqlite3.Connection, customer_ids: list[int], coun
                 resolved_at = now
         else:
             resolved_at = None
+
+        acknowledged_at = None
+        if status != "OPEN":
+            acknowledged_at = min(created_at + timedelta(days=1), now)
         
         cursor.execute("""
-            INSERT INTO support_tickets (customer_id, subject, description, priority, status, created_at, resolved_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (customer_id, subject, description, priority, status, to_sqlite_timestamp(created_at), 
+            INSERT INTO support_tickets (
+                customer_id, subject, description, priority, status, created_at,
+                acknowledged_at, resolved_at, priority_escalated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)
+        """, (customer_id, subject, description, priority, status, to_sqlite_timestamp(created_at),
+              to_sqlite_timestamp(acknowledged_at) if acknowledged_at else None,
               to_sqlite_timestamp(resolved_at) if resolved_at else None))
         
         if (i + 1) % 50 == 0:

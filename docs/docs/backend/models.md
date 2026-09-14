@@ -84,7 +84,28 @@ Customer service tickets.
 | priority | Enum | LOW, MEDIUM, HIGH, URGENT |
 | status | Enum | OPEN, IN_PROGRESS, RESOLVED, CLOSED |
 | createdAt | Instant | Creation timestamp |
+| acknowledgedAt | Instant | First Open-to-In Progress transition, retained once written |
 | resolvedAt | Instant | Resolution timestamp |
+| priorityEscalatedAt | Instant | First idempotent overdue-priority escalation |
+
+Ticket age and deadline state are projections, not stored fields. The
+acknowledgement deadline is two business days after `createdAt`, and the
+resolution deadline is ten business days after `createdAt`. Business days are
+Monday through Friday in UTC. Public holidays are outside the current policy.
+
+For example, a ticket created Monday 3 August 2026 at 10:00 UTC has an
+acknowledgement deadline of Wednesday 5 August at 10:00 UTC and a resolution
+deadline of Monday 17 August at 10:00 UTC. A ticket created Friday 31 July at
+15:00 UTC has an acknowledgement deadline of Tuesday 4 August at 15:00 UTC,
+because Saturday and Sunday do not consume SLA time.
+
+State precedence is `RESOLUTION_OVERDUE`, `ACKNOWLEDGEMENT_OVERDUE`,
+`DUE_SOON`, then `ON_TRACK`. A deadline becomes overdue only after its exact
+instant. Due soon includes exactly 24 hours remaining. Resolved and Closed
+of business time, so weekend time does not shorten that window. Resolved and
+Closed tickets retain their source timestamps for audit, but do not appear in
+current attention counts. Reopening either status clears stale `resolvedAt`,
+while keeping `acknowledgedAt` and the original resolution clock.
 
 ## Entity Relationships
 

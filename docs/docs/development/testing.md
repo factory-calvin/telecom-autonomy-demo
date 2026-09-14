@@ -104,6 +104,27 @@ prints p50 and p95 latency plus `EXPLAIN QUERY PLAN` output. The p95 target is
 below 500 ms, and the plan must contain
 `USING INDEX idx_usage_records_type_customer_recorded_at`.
 
+## Ticket Deadline Checks
+
+Deadline unit and controller tests use fixed Java `Clock` values. They cover
+weekday and weekend deadlines, exact due and 24-hour boundaries, state
+precedence, filtered pagination, dashboard reconciliation, reopening, and
+idempotent priority escalation.
+
+For a manual audit without modifying the checked-in database, seed a disposable
+database and query both APIs with the same instant:
+
+```bash
+curl 'http://localhost:8080/api/tickets?deadlineState=RESOLUTION_OVERDUE&asOf=2026-08-18T10:00:01Z'
+curl 'http://localhost:8080/api/dashboard/stats?asOf=2026-08-18T10:00:01Z'
+curl -X POST 'http://localhost:8080/api/tickets/reconcile-deadlines'
+curl -X POST 'http://localhost:8080/api/tickets/reconcile-deadlines'
+```
+
+The two GET responses must reconcile at their shared `as_of`. The second POST
+must report zero additional updates. The deterministic Python and fallback
+Java seed rows have subjects beginning with `SLA audit:`.
+
 ## CI Integration
 
 Tests run automatically on:
