@@ -1,5 +1,6 @@
 "use client"
 
+import type { ReactNode } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
@@ -12,7 +13,17 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { HealthStatus } from "@/components/health-status"
 import { useDashboardStats } from "@/hooks/use-dashboard-stats"
-import { Users, DollarSign, Ticket, Smartphone, TriangleAlert, CircleAlert } from "lucide-react"
+import {
+  Users,
+  DollarSign,
+  Ticket,
+  Smartphone,
+  TriangleAlert,
+  CircleAlert,
+  Clock3,
+  MessageSquareWarning,
+  Siren,
+} from "lucide-react"
 import {
   ChartContainer,
   ChartTooltip,
@@ -59,6 +70,28 @@ const ticketsByStatusConfig: ChartConfig = {
   IN_PROGRESS: { label: "In Progress", color: "var(--chart-1)" },
   RESOLVED: { label: "Resolved", color: "var(--chart-3)" },
   CLOSED: { label: "Closed", color: "var(--chart-4)" },
+}
+
+interface KpiCardProps {
+  title: string
+  value: ReactNode
+  description: string
+  icon: ReactNode
+}
+
+function KpiCard({ title, value, description, icon }: KpiCardProps) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-body-small">{title}</CardTitle>
+        {icon}
+      </CardHeader>
+      <CardContent>
+        <div className="text-headline-2">{value}</div>
+        <p className="text-caption text-muted-foreground">{description}</p>
+      </CardContent>
+    </Card>
+  )
 }
 
 export default function DashboardPage() {
@@ -122,68 +155,62 @@ export default function DashboardPage() {
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           {/* KPI Cards */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-body-small">Active Customers</CardTitle>
-                <Users className="text-muted-foreground h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-headline-2">{stats?.active_customers || 0}</div>
-                <p className="text-caption text-muted-foreground">Total active subscribers</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-body-small">Monthly Revenue</CardTitle>
-                <DollarSign className="text-muted-foreground h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-headline-2">
-                  ${stats?.monthly_revenue?.toFixed(2) || "0.00"}
-                </div>
-                <p className="text-caption text-muted-foreground">From active subscriptions</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-body-small">Open Tickets</CardTitle>
-                <Ticket className="text-muted-foreground h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-headline-2">{stats?.open_tickets || 0}</div>
-                <p className="text-caption text-muted-foreground">Requiring attention</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-body-small">Devices in Use</CardTitle>
-                <Smartphone className="text-muted-foreground h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-headline-2">{stats?.devices_in_use || 0}</div>
-                <p className="text-caption text-muted-foreground">Assigned to customers</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-body-small">At-risk customers</CardTitle>
-                <TriangleAlert className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-headline-2">{stats?.at_risk_customers ?? 0}</div>
-                <p className="text-caption text-muted-foreground">At or above 80% this cycle</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-body-small">Over-limit customers</CardTitle>
-                <CircleAlert className="h-4 w-4 text-red-600 dark:text-red-400" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-headline-2">{stats?.over_limit_customers ?? 0}</div>
-                <p className="text-caption text-muted-foreground">At or above 100% this cycle</p>
-              </CardContent>
-            </Card>
+            <KpiCard
+              title="Active Customers"
+              value={stats?.active_customers || 0}
+              description="Total active subscribers"
+              icon={<Users className="text-muted-foreground h-4 w-4" />}
+            />
+            <KpiCard
+              title="Monthly Revenue"
+              value={`$${stats?.monthly_revenue?.toFixed(2) || "0.00"}`}
+              description="From active subscriptions"
+              icon={<DollarSign className="text-muted-foreground h-4 w-4" />}
+            />
+            <KpiCard
+              title="Open Tickets"
+              value={stats?.open_tickets || 0}
+              description="Requiring attention"
+              icon={<Ticket className="text-muted-foreground h-4 w-4" />}
+            />
+            <KpiCard
+              title="Devices in Use"
+              value={stats?.devices_in_use || 0}
+              description="Assigned to customers"
+              icon={<Smartphone className="text-muted-foreground h-4 w-4" />}
+            />
+            <KpiCard
+              title="At-risk customers"
+              value={stats?.at_risk_customers ?? 0}
+              description="At or above 80% this cycle"
+              icon={<TriangleAlert className="h-4 w-4 text-amber-600 dark:text-amber-400" />}
+            />
+            <KpiCard
+              title="Over-limit customers"
+              value={stats?.over_limit_customers ?? 0}
+              description="At or above 100% this cycle"
+              icon={<CircleAlert className="h-4 w-4 text-red-600 dark:text-red-400" />}
+            />
+            <KpiCard
+              title="Acknowledgement overdue"
+              value={stats?.acknowledgement_overdue_tickets ?? 0}
+              description="Current ticket count"
+              icon={
+                <MessageSquareWarning className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+              }
+            />
+            <KpiCard
+              title="Resolution overdue"
+              value={stats?.resolution_overdue_tickets ?? 0}
+              description="Current ticket count"
+              icon={<Siren className="h-4 w-4 text-red-600 dark:text-red-400" />}
+            />
+            <KpiCard
+              title="Due soon"
+              value={stats?.due_soon_tickets ?? 0}
+              description="Current ticket count"
+              icon={<Clock3 className="h-4 w-4 text-amber-600 dark:text-amber-400" />}
+            />
           </div>
 
           {/* Charts Row 1 */}

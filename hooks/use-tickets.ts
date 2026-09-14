@@ -5,6 +5,12 @@ import { createLogger } from "@/lib/logger"
 
 const log = createLogger("useTickets")
 
+export type DeadlineState =
+  | "ON_TRACK"
+  | "DUE_SOON"
+  | "ACKNOWLEDGEMENT_OVERDUE"
+  | "RESOLUTION_OVERDUE"
+
 export interface Ticket {
   id: number
   customer_id: number
@@ -14,13 +20,21 @@ export interface Ticket {
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT"
   status: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED"
   created_at: string | null
+  acknowledged_at: string | null
   resolved_at: string | null
+  priority_escalated_at: string | null
+  age_hours: number
+  age_days: number
+  acknowledgement_due_at: string
+  resolution_due_at: string
+  deadline_state: DeadlineState
 }
 
 export interface TicketFilters {
   priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT" | null
   status?: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED" | null
   customerId?: number | null
+  deadlineState?: DeadlineState | null
 }
 
 export interface TicketCreate {
@@ -63,9 +77,10 @@ export function useTickets(filters: TicketFilters = {}) {
       if (filters.priority) params.set("priority", filters.priority)
       if (filters.status) params.set("status", filters.status)
       if (filters.customerId) params.set("customerId", filters.customerId.toString())
+      if (filters.deadlineState) params.set("deadlineState", filters.deadlineState)
       return `/api/tickets?${params.toString()}`
     },
-    [filters.priority, filters.status, filters.customerId]
+    [filters.priority, filters.status, filters.customerId, filters.deadlineState]
   )
 
   const fetchTickets = useCallback(
@@ -79,7 +94,7 @@ export function useTickets(filters: TicketFilters = {}) {
           pageRef.current += 1
         }
 
-        log.info({ page: pageRef.current, filters }, "Fetching tickets")
+        log.info({ page: pageRef.current }, "Fetching tickets")
         const res = await fetch(buildUrl(pageRef.current))
         if (!res.ok) throw new Error("Failed to fetch tickets")
         const data: PagedResponse = await res.json()
@@ -106,7 +121,7 @@ export function useTickets(filters: TicketFilters = {}) {
         setLoadingMore(false)
       }
     },
-    [buildUrl, filters]
+    [buildUrl]
   )
 
   const loadMore = useCallback(() => {

@@ -75,7 +75,8 @@ export default function TicketsPage() {
   const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null)
 
   const clearFilters = () => setFilters({})
-  const hasActiveFilters = filters.priority || filters.status || filters.customerId
+  const hasActiveFilters =
+    filters.priority || filters.status || filters.customerId || filters.deadlineState
 
   const handleAdd = () => {
     setEditingTicket(null)
@@ -197,6 +198,30 @@ export default function TicketsPage() {
                   </Select>
                 </div>
                 <div className="space-y-1">
+                  <Label htmlFor="deadline-filter">Deadline</Label>
+                  <Select
+                    value={filters.deadlineState || "all"}
+                    onValueChange={(v: string) =>
+                      setFilters((f) => ({
+                        ...f,
+                        deadlineState: v === "all" ? null : (v as TicketFilters["deadlineState"]),
+                      }))
+                    }
+                  >
+                    <SelectTrigger id="deadline-filter" className="w-[220px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="DUE_SOON">Due soon</SelectItem>
+                      <SelectItem value="ACKNOWLEDGEMENT_OVERDUE">
+                        Acknowledgement overdue
+                      </SelectItem>
+                      <SelectItem value="RESOLUTION_OVERDUE">Resolution overdue</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
                   <Label htmlFor="customer-filter">Customer ID</Label>
                   <Input
                     id="customer-filter"
@@ -244,6 +269,11 @@ export default function TicketsPage() {
                   {!hasNext && tickets.length > 0 && (
                     <div className="text-muted-foreground py-4 text-center text-sm">
                       End of results
+                    </div>
+                  )}
+                  {tickets.length === 0 && (
+                    <div className="text-muted-foreground py-8 text-center text-sm">
+                      No tickets match the selected filters.
                     </div>
                   )}
                 </div>
