@@ -38,6 +38,17 @@ class UsageRecordIndexIntegrationTest {
                     recorded_at TIMESTAMP NOT NULL
                 )
                 """);
+        jdbcTemplate.execute("""
+                CREATE TABLE support_tickets (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    customer_id BIGINT NOT NULL,
+                    priority VARCHAR(255) NOT NULL,
+                    status VARCHAR(255) NOT NULL,
+                    created_at TIMESTAMP NOT NULL,
+                    acknowledged_at TIMESTAMP,
+                    resolved_at TIMESTAMP
+                )
+                """);
     }
 
     @AfterEach
@@ -57,6 +68,10 @@ class UsageRecordIndexIntegrationTest {
                 "SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' AND name = ?", Integer.class,
                 DatabaseIndexInitializer.CURRENT_CYCLE_INDEX);
         assertEquals(1, indexCount);
+        Integer ticketIndexCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' AND name = ?", Integer.class,
+                DatabaseIndexInitializer.TICKET_DEADLINE_INDEX);
+        assertEquals(1, ticketIndexCount);
     }
 
     @Test
