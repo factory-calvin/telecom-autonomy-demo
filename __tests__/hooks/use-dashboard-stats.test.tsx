@@ -9,6 +9,10 @@ const stats = {
   devices_in_use: 7,
   at_risk_customers: 2,
   over_limit_customers: 1,
+  acknowledgement_overdue_tickets: 4,
+  resolution_overdue_tickets: 3,
+  due_soon_tickets: 6,
+  as_of: "2026-09-14T04:00:00Z",
 }
 
 const payloads: Record<string, unknown> = {
@@ -53,6 +57,9 @@ describe("useDashboardStats", () => {
     expect(result.current.stats).toEqual(stats)
     expect(result.current.stats?.at_risk_customers).toBe(2)
     expect(result.current.stats?.over_limit_customers).toBe(1)
+    expect(result.current.stats?.acknowledgement_overdue_tickets).toBe(4)
+    expect(result.current.stats?.resolution_overdue_tickets).toBe(3)
+    expect(result.current.stats?.due_soon_tickets).toBe(6)
     expect(result.current.customersByPlan).toEqual([{ name: "Basic", value: 2 }])
     expect(result.current.devicesByStatus).toEqual([{ name: "ASSIGNED", value: 7 }])
     expect(result.current.ticketsByStatus).toEqual([{ name: "OPEN", value: 5 }])

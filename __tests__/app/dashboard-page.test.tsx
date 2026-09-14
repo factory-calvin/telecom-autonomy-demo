@@ -11,6 +11,10 @@ vi.mock("@/hooks/use-dashboard-stats", () => ({
       devices_in_use: 18,
       at_risk_customers: 4,
       over_limit_customers: 2,
+      acknowledgement_overdue_tickets: 7,
+      resolution_overdue_tickets: 5,
+      due_soon_tickets: 9,
+      as_of: "2026-09-14T04:00:00Z",
     },
     customersByPlan: [],
     devicesByStatus: [],
@@ -51,13 +55,20 @@ vi.mock("recharts", () => ({
   YAxis: () => null,
 }))
 
-describe("DashboardPage usage-risk KPIs", () => {
-  it("renders separate API counts for at-risk and over-limit customers", () => {
+describe("DashboardPage KPIs", () => {
+  it("renders separate API counts for usage risk and ticket deadlines", () => {
     render(<DashboardPage />)
 
     expect(screen.getByText("At-risk customers")).toBeInTheDocument()
     expect(screen.getByText("4")).toBeInTheDocument()
     expect(screen.getByText("Over-limit customers")).toBeInTheDocument()
     expect(screen.getByText("2")).toBeInTheDocument()
+    expect(screen.getByText("Acknowledgement overdue")).toBeInTheDocument()
+    expect(screen.getByText("7")).toBeInTheDocument()
+    expect(screen.getByText("Resolution overdue")).toBeInTheDocument()
+    expect(screen.getByText("5")).toBeInTheDocument()
+    expect(screen.getByText("Due soon")).toBeInTheDocument()
+    expect(screen.getByText("9")).toBeInTheDocument()
+    expect(screen.getAllByText("Current ticket count")).toHaveLength(3)
   })
 })
