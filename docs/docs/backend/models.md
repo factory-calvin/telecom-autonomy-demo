@@ -101,8 +101,8 @@ because Saturday and Sunday do not consume SLA time.
 
 State precedence is `RESOLUTION_OVERDUE`, `ACKNOWLEDGEMENT_OVERDUE`,
 `DUE_SOON`, then `ON_TRACK`. A deadline becomes overdue only after its exact
-instant. Due soon includes exactly 24 hours remaining. Resolved and Closed
-of business time, so weekend time does not shorten that window. Resolved and
+instant. Due soon includes exactly 24 hours of business time remaining, so
+weekend time does not shorten that window. Resolved and
 Closed tickets retain their source timestamps for audit, but do not appear in
 current attention counts. Reopening either status clears stale `resolvedAt`,
 while keeping `acknowledgedAt` and the original resolution clock.
