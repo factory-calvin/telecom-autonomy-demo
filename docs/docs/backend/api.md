@@ -95,6 +95,7 @@ Current-cycle data uses the half-open UTC calendar month: the first day at
 | GET | `/tickets` | List tickets (paginated) |
 | GET | `/tickets/{id}` | Get ticket by ID |
 | POST | `/tickets` | Create ticket |
+| POST | `/tickets/reconcile-deadlines` | Raise resolution-overdue Low/Medium tickets to High |
 | PUT | `/tickets/{id}` | Update ticket |
 | DELETE | `/tickets/{id}` | Delete ticket |
 
@@ -104,6 +105,38 @@ Current-cycle data uses the half-open UTC calendar month: the first day at
 - `priority` - `LOW`, `MEDIUM`, `HIGH`, `URGENT`
 - `status` - `OPEN`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`
 - `customerId` - Filter by customer
+- `deadlineState` - `ON_TRACK`, `DUE_SOON`, `ACKNOWLEDGEMENT_OVERDUE`, or `RESOLUTION_OVERDUE`
+- `asOf` - Optional ISO-8601 instant used for reproducible projections
+
+The deadline filter is applied before pagination. `totalElements`, `totalPages`,
+and `hasNext` therefore describe only the matching rows. The response includes
+the effective `as_of` instant, and each ticket includes:
+
+```json
+{
+  "created_at": "2026-08-03T10:00:00Z",
+  "acknowledged_at": "2026-08-04T10:00:00Z",
+  "resolved_at": null,
+  "priority_escalated_at": null,
+  "age_hours": 337,
+  "age_days": 14,
+  "acknowledgement_due_at": "2026-08-05T10:00:00Z",
+  "resolution_due_at": "2026-08-17T10:00:00Z",
+  "deadline_state": "RESOLUTION_OVERDUE"
+}
+```
+
+Age is derived from source timestamps and is never stored. Deadlines count
+Monday through Friday in UTC; public holidays are not excluded. At exactly the
+due instant a ticket is not overdue. `DUE_SOON` includes exactly 24 hours
+of business time remaining, so weekend time does not shorten the due-soon
+window. `RESOLUTION_OVERDUE` takes precedence over acknowledgement overdue.
+
+`POST /tickets/reconcile-deadlines` invokes the same idempotent reconciliation
+as the 15-minute scheduled job. It returns candidate and update counts. It
+raises only Low or Medium resolution-overdue tickets, records
+`priority_escalated_at` once, and never lowers Urgent. GET requests do not
+perform reconciliation.
 
 ## Dashboard
 
@@ -119,6 +152,12 @@ Current-cycle data uses the half-open UTC calendar month: the first day at
 `over_limit_customers`. Both counts use the same current-cycle calculation as
 the customer projection, count each customer once, and exclude Unlimited
 plans.
+
+The same response also includes `acknowledgement_overdue_tickets`,
+`resolution_overdue_tickets`, `due_soon_tickets`, and `as_of`. These are
+current active-ticket counts, not a monthly breach-rate denominator. Supply
+the same `asOf` value to `/dashboard/stats` and `/tickets` to reconcile each
+count to projected rows without changing the existing KPI meanings.
 
 ## Interactive Docs
 
