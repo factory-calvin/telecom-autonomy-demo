@@ -9,8 +9,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Pencil, Trash2 } from "lucide-react"
-import type { Ticket } from "@/hooks/use-tickets"
+import { CircleCheck, Clock3, Pencil, Siren, Trash2, TriangleAlert } from "lucide-react"
+import type { DeadlineState, Ticket } from "@/hooks/use-tickets"
 
 interface TicketsTableProps {
   tickets: Ticket[]
@@ -32,6 +32,45 @@ const statusColors: Record<string, string> = {
   CLOSED: "bg-gray-100 text-gray-800",
 }
 
+const deadlinePresentation: Record<
+  DeadlineState,
+  { label: string; className: string; icon: typeof CircleCheck }
+> = {
+  ON_TRACK: {
+    label: "On track",
+    className: "bg-green-100 text-green-900 dark:bg-green-950 dark:text-green-200",
+    icon: CircleCheck,
+  },
+  DUE_SOON: {
+    label: "Due soon",
+    className: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200",
+    icon: Clock3,
+  },
+  ACKNOWLEDGEMENT_OVERDUE: {
+    label: "Acknowledgement overdue",
+    className: "bg-orange-100 text-orange-900 dark:bg-orange-950 dark:text-orange-200",
+    icon: TriangleAlert,
+  },
+  RESOLUTION_OVERDUE: {
+    label: "Resolution overdue",
+    className: "bg-red-100 text-red-900 dark:bg-red-950 dark:text-red-200",
+    icon: Siren,
+  },
+}
+
+const deadlineFormatter = new Intl.DateTimeFormat(undefined, {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  timeZoneName: "short",
+})
+
+function formatDeadline(value: string) {
+  return deadlineFormatter.format(new Date(value))
+}
+
 export function TicketsTable({ tickets, onEdit, onDelete }: TicketsTableProps) {
   return (
     <Table>
@@ -42,7 +81,8 @@ export function TicketsTable({ tickets, onEdit, onDelete }: TicketsTableProps) {
           <TableHead>Subject</TableHead>
           <TableHead>Priority</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead>Created</TableHead>
+          <TableHead>Age</TableHead>
+          <TableHead>Deadline</TableHead>
           <TableHead className="w-[100px] text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -67,7 +107,26 @@ export function TicketsTable({ tickets, onEdit, onDelete }: TicketsTableProps) {
               </span>
             </TableCell>
             <TableCell className="text-muted-foreground">
-              {ticket.created_at ? new Date(ticket.created_at).toLocaleDateString() : "-"}
+              <span className="text-foreground font-medium">{ticket.age_days} days</span>
+              <span className="block text-xs">{ticket.age_hours} whole hours</span>
+            </TableCell>
+            <TableCell>
+              {(() => {
+                const presentation = deadlinePresentation[ticket.deadline_state]
+                const DeadlineIcon = presentation.icon
+                const exactDeadlines = `Acknowledgement due ${formatDeadline(ticket.acknowledgement_due_at)}. Resolution due ${formatDeadline(ticket.resolution_due_at)}.`
+
+                return (
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${presentation.className}`}
+                    aria-label={`${presentation.label}. ${exactDeadlines}`}
+                    title={exactDeadlines}
+                  >
+                    <DeadlineIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                    {presentation.label}
+                  </span>
+                )
+              })()}
             </TableCell>
             <TableCell className="text-right">
               <div className="flex justify-end gap-1">

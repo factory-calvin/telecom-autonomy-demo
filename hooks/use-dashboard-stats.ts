@@ -9,6 +9,10 @@ export interface DashboardStats {
   devices_in_use: number
   at_risk_customers: number
   over_limit_customers: number
+  acknowledgement_overdue_tickets: number
+  resolution_overdue_tickets: number
+  due_soon_tickets: number
+  as_of: string
 }
 
 export interface ChartData {

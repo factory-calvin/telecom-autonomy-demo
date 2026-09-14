@@ -60,8 +60,14 @@ const {
   priority: "HIGH",
   status: "OPEN",
   customerId: 123,
+  deadlineState: "RESOLUTION_OVERDUE",
 })
 ```
+
+Each ticket includes API-derived `age_hours`, `age_days`, exact acknowledgement and
+resolution due timestamps, and one semantic `deadline_state`: `ON_TRACK`, `DUE_SOON`,
+`ACKNOWLEDGEMENT_OVERDUE`, or `RESOLUTION_OVERDUE`. Pass `deadlineState` to filter through
+`GET /api/tickets`; clients must not recalculate business-day deadlines.
 
 ### useUsage
 
@@ -81,6 +87,8 @@ const { records, loading, loadingMore, hasNext, loadMore } = useUsage({
 ```tsx
 const { stats, loading, error } = useDashboardStats()
 // stats also includes at_risk_customers and over_limit_customers for the current cycle
+// and acknowledgement_overdue_tickets, resolution_overdue_tickets, due_soon_tickets,
+// and as_of for current support-ticket attention counts
 ```
 
 ## Hook Patterns
