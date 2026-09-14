@@ -197,6 +197,23 @@ public class DataSeeder implements CommandLineRunner {
                 .toList();
 
         List<SupportTicket> tickets = new java.util.ArrayList<>();
+        Instant monday = Instant.parse("2026-08-03T10:00:00Z");
+        Instant friday = Instant.parse("2026-07-31T15:00:00Z");
+
+        tickets.add(auditTicket(activeCustomers.get(0), "SLA audit: Monday acknowledgement boundary",
+                SupportTicket.Status.OPEN, SupportTicket.Priority.LOW, monday, null, null));
+        tickets.add(auditTicket(activeCustomers.get(1), "SLA audit: weekend acknowledgement boundary",
+                SupportTicket.Status.OPEN, SupportTicket.Priority.MEDIUM, friday, null, null));
+        tickets.add(auditTicket(activeCustomers.get(2), "SLA audit: exact due-soon boundary", SupportTicket.Status.OPEN,
+                SupportTicket.Priority.HIGH, monday, null, null));
+        tickets.add(auditTicket(activeCustomers.get(3), "SLA audit: acknowledged resolution clock",
+                SupportTicket.Status.IN_PROGRESS, SupportTicket.Priority.MEDIUM, monday,
+                monday.plus(1, ChronoUnit.DAYS), null));
+        tickets.add(auditTicket(activeCustomers.get(4), "SLA audit: resolved outcome", SupportTicket.Status.RESOLVED,
+                SupportTicket.Priority.HIGH, monday, monday.plus(1, ChronoUnit.DAYS), monday.plus(4, ChronoUnit.DAYS)));
+        tickets.add(auditTicket(activeCustomers.get(5), "SLA audit: closed outcome", SupportTicket.Status.CLOSED,
+                SupportTicket.Priority.URGENT, friday, friday.plus(3, ChronoUnit.DAYS),
+                friday.plus(14, ChronoUnit.DAYS)));
 
         for (int i = 0; i < ticketData.length; i++) {
             Customer customer = activeCustomers.get(i % activeCustomers.size());
@@ -209,10 +226,24 @@ public class DataSeeder implements CommandLineRunner {
                     || ticket.getStatus() == SupportTicket.Status.CLOSED) {
                 ticket.setResolvedAt(Instant.now().minus(random.nextInt(3), ChronoUnit.DAYS));
             }
+            if (ticket.getStatus() != SupportTicket.Status.OPEN) {
+                ticket.setAcknowledgedAt(ticket.getCreatedAt().plus(1, ChronoUnit.DAYS));
+            }
 
             tickets.add(ticket);
         }
 
         ticketRepository.saveAll(tickets);
+    }
+
+    private SupportTicket auditTicket(Customer customer, String subject, SupportTicket.Status status,
+            SupportTicket.Priority priority, Instant createdAt, Instant acknowledgedAt, Instant resolvedAt) {
+        SupportTicket ticket = new SupportTicket(customer, subject,
+                "Deterministic SLA boundary example; reproduce with the documented as-of timestamp.", priority);
+        ticket.setStatus(status);
+        ticket.setCreatedAt(createdAt);
+        ticket.setAcknowledgedAt(acknowledgedAt);
+        ticket.setResolvedAt(resolvedAt);
+        return ticket;
     }
 }
