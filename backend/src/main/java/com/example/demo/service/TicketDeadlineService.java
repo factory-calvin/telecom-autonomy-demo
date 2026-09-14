@@ -128,7 +128,7 @@ public class TicketDeadlineService {
 
     private DeadlineState state(SupportTicket ticket, Instant asOf, Instant acknowledgementDueAt,
             Instant resolutionDueAt) {
-        Instant evaluationTime = isActive(ticket) ? asOf : ticket.getResolvedAt();
+        Instant evaluationTime = evaluationTime(ticket, asOf);
         if (evaluationTime != null && evaluationTime.isAfter(resolutionDueAt)) {
             return DeadlineState.RESOLUTION_OVERDUE;
         }
@@ -146,6 +146,18 @@ public class TicketDeadlineService {
             return DeadlineState.DUE_SOON;
         }
         return DeadlineState.ON_TRACK;
+    }
+
+    private Instant evaluationTime(SupportTicket ticket, Instant asOf) {
+        if (isActive(ticket)) {
+            return asOf;
+        }
+        Instant resolvedAt = ticket.getResolvedAt();
+        if (resolvedAt == null) {
+            return null;
+        }
+        // A projection asked for a past asOf must not see a resolution that happened later.
+        return resolvedAt.isBefore(asOf) ? resolvedAt : asOf;
     }
 
     private boolean isActive(SupportTicket ticket) {

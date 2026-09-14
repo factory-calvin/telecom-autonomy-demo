@@ -88,6 +88,16 @@ class TicketDeadlineServiceTest {
     }
 
     @Test
+    void resolvedTicketProjectedBeforeItsResolutionIsBoundedByAsOf() {
+        SupportTicket ticket = ticket(SupportTicket.Status.RESOLVED, SupportTicket.Priority.MEDIUM, MONDAY);
+        ticket.setAcknowledgedAt(Instant.parse("2026-08-03T12:00:00Z"));
+        ticket.setResolvedAt(Instant.parse("2026-08-17T10:00:01Z"));
+
+        assertEquals(DeadlineState.ON_TRACK,
+                service.project(ticket, Instant.parse("2026-08-10T10:00:00Z")).deadlineState());
+    }
+
+    @Test
     void currentCountsExcludeResolvedTicketsAndUseOneStatePerTicket() {
         SupportTicket acknowledgementOverdue = ticket(SupportTicket.Status.OPEN, SupportTicket.Priority.HIGH,
                 Instant.parse("2026-08-12T10:00:00Z"));
