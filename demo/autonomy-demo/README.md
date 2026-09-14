@@ -17,11 +17,11 @@ Everything here is isolated from the shared Factory-Academy repo:
 
 ## The automations (Factory → Automations)
 
-| #   | Name                          | Cadence      | Watches                                                                                        | Produces                                                                                                                                                                                                       |
-| --- | ----------------------------- | ------------ | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **FFA 1 · Spec Writer**       | every 10 min | Notion page containing `Status: Ready for Spec`; new top-level messages in `#demo-req-channel` | RFC PR (`docs/docs/rfcs/…`), parent + child Linear issues with acceptance criteria, `agent-ready` → Todo / `needs-human` → Backlog, write-back to Notion/Slack                                                 |
-| 2   | **FFA 2 · Issue Implementer** | every 10 min | FFA issues in Todo labeled `agent-ready`                                                       | Claims one issue, posts an agent-readiness report, implements on the Droid Computer per AGENTS.md, runs `pnpm lint` + tests, opens PR with risk self-assessment and "Lessons for AGENTS.md", issue → In Review |
-| 3   | **FFA 3 · Loop Closer**       | every 15 min | Merged PRs; alerts in `#demo-alerts-channel`; lessons in PR bodies                             | Docs PR for merged changes, Linear → Done, `Prod: …` issue from each alert (routed agent-ready/needs-human), one `agents:` PR proposing an AGENTS.md change for human approval                                 |
+| #   | Name                          | Cadence   | Watches                                                                                        | Produces                                                                                                                                                                                                       |
+| --- | ----------------------------- | --------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **FFA 1 · Spec Writer**       | `*/10`    | Notion page containing `Status: Ready for Spec`; new top-level messages in `#demo-req-channel` | RFC PR (`docs/docs/rfcs/…`), parent + child Linear issues with acceptance criteria, `agent-ready` → Todo / `needs-human` → Backlog, write-back to Notion/Slack                                                 |
+| 2   | **FFA 2 · Issue Implementer** | `5-59/10` | FFA issues in Todo labeled `agent-ready`                                                       | Claims one issue, posts an agent-readiness report, implements on the Droid Computer per AGENTS.md, runs `pnpm lint` + tests, opens PR with risk self-assessment and "Lessons for AGENTS.md", issue → In Review |
+| 3   | **FFA 3 · Loop Closer**       | `7-59/15` | Merged PRs; alerts in `#demo-alerts-channel`; lessons in PR bodies                             | Docs PR for merged changes, Linear → Done, `Prod: …` issue from each alert (routed agent-ready/needs-human), one `agents:` PR proposing an AGENTS.md change for human approval                                 |
 
 Review routing is event-driven, not scheduled:
 
@@ -63,36 +63,77 @@ Thresholds are repo variables: `RISK_THRESHOLD_LOW` (30), `RISK_THRESHOLD_HIGH` 
 
 If anything did not fire, open the automation's latest run session; the run summary says exactly which tool call failed.
 
-## State as staged for Monday (after the dry run)
+## Guided artifact tour (the show, no live runs)
 
-The dry run completed the full loop once, so the show does not start from zero; it starts from a repo that already carries the first market rule.
+The loop has run end to end twice. The second run (market rule **MR-2026-19, Support
+Response-Time Transparency**) was executed on 2026-09-14 between 02:44 and 06:00 UTC with
+the automations live and one human (the reviewer) in the loop. Every artifact it produced
+is still where the automation left it. The show walks those artifacts in the order they
+were created; nothing needs to run, and the automations stay **paused**.
 
-- **Already on `main`:** RFC `docs/docs/rfcs/2026-09-12-data-overage-protection.md` (PR #2), FFA-3 usage metrics (PR #4), FFA-8 dashboard index (PR #7), FFA-6 usage-risk UI (PR #8), the router and its fixes (PRs #1, #6, #9), docs PRs (#5, #10), and the `agents:` proposal (PR #3, `AGENTS.md` CI Security section).
-- **Linear FFA:** FFA-3, FFA-6, FFA-7, FFA-8 Done. FFA-9 (`agent-instructions`, `needs-human`) is open and points at PR #12. FFA-1, FFA-2, FFA-4, FFA-5 stay in Backlog as `needs-human` (they are the open decisions from the RFC; leave them, they are part of the story).
-- **Notion:** `Calvin_DemoDoc` (MR-2026-14) carries its `Droid Spec:` callout. A second page, **"Market rule MR-2026-19: Support Response-Time Transparency"**, sits underneath it with `Status: Draft`. That page is Monday's signal.
-- **Automations:** paused. `RISK_AUTO_MERGE=true` and "Allow auto-merge" are on, so `low` PRs merge themselves; `medium`/`high` wait for a human.
-- **Ruleset on `main`:** requires the `route` check; admins bypass. Leave "Require an additional approval for unattributed Copilot pull requests" as it is; it does not affect the flow.
+Automation run sessions live in Factory → Automations → _automation_ → Runs; times below
+are UTC. Everything else is a direct link.
 
-### Start-of-show checklist (10 minutes before)
+### Beat 1 · Signal in
 
-1. Factory → Automations: **resume** FFA 1, FFA 2, FFA 3. Confirm `ls /home/factory-user/automation-state/checkout.lock` fails (no stale lock) and the shared checkout is clean on `main`.
-2. `gh pr list` in the repo shows exactly one open PR: **#12 `chore(agents): document Droid Java trust store`** (with Linear FFA-9). It is left open on purpose as the beat-7 exhibit: the agent proposing a change to its own instructions after two PRs lost a validation attempt to the same environment quirk, routed `needs-human-review`, waiting for you. Do not merge it before the show. `gh workflow view "Droid Risk Router"` is enabled.
-3. Open in tabs: the MR-2026-19 Notion page, Linear FFA board, GitHub PR list, Factory Automations (FFA 1 run list), `#demo-req-channel`, `#demo-alerts-channel`.
-4. Beat 1: change the first line of the MR-2026-19 page from `Status: Draft` to `Status: Ready for Spec`. The Spec Writer ticks every 10 minutes (`*/10`), so the RFC PR lands within 10 minutes; the Implementer's first PR within roughly 20 to 30 minutes after that. Fill that time with beats 3 and 5 (readiness, Jenkinsfile), which need no new state.
-5. Beat 6: when a `medium`/`high` PR arrives, review it on stage and merge with `gh pr merge <n> --squash` (add `--admin` if the ruleset blocks; `route` is required and passes for medium).
-6. Beat 7: post in `#demo-alerts-channel`, e.g. `ALERT prod: GET /api/tickets p95 latency 4.1s since deploy of <sha>; Care queue page timing out`. The Loop Closer ticks every 15 minutes (`*/15`).
+1. Notion: [Market rule MR-2026-19](https://app.notion.com/p/Market-rule-MR-2026-19-Support-Response-Time-Transparency-3da2517972c7810a9a54fff30cd144d6) (child of `Calvin_DemoDoc`). A regulator memo written by a PM: five requirements, two open decisions, and the last line `Status: Ready for Spec`. That line was the only trigger; it was flipped from `Status: Draft` at 02:44.
+2. Same page, bottom: the `Droid Spec:` callout the Spec Writer wrote back, linking the RFC PR and the Linear parent. This is how the PM learns their doc became work.
 
-If you want to rehearse again before Monday, follow "Reset between runs" and re-stage the MR-2026-19 page to `Status: Draft` (delete its `Droid Spec:` callout).
+### Beat 2 · Spec
 
-## Show flow (maps to the customer's beats)
+3. Factory → Automations → **FFA 1 · Spec Writer**, run at **03:20**. The session shows the agent reading the page, the repo, and AGENTS.md before writing a word.
+4. [PR #14 `RFC: Support Response-Time Transparency`](https://github.com/factory-calvin/telecom-autonomy-demo/pull/14) (merged `8530f05`). Read the business-context section (regulator, deadline, exposure) and the issue-slicing table. Router: `risk:low` (score 10) → auto-merged; docs only.
+5. Linear parent [FFA-10](https://linear.app/factoryai/issue/FFA-10) with children:
+   - [FFA-11](https://linear.app/factoryai/issue/FFA-11), [FFA-12](https://linear.app/factoryai/issue/FFA-12), [FFA-13](https://linear.app/factoryai/issue/FFA-13): `needs-human`, created in **Backlog**. The agent refused to guess on clock start, SLA tiers, and escalation mechanics; each comment thread carries the human's decision that unblocked the work.
+   - [FFA-14](https://linear.app/factoryai/issue/FFA-14) backend, `agent-ready`, `Depends on: FFA-11/12/13`.
+   - [FFA-15](https://linear.app/factoryai/issue/FFA-15) frontend, `agent-ready`, `Depends on: FFA-14`, so it waited in Backlog until the backend merged.
 
-1. **Signal in.** Show the Notion doc (or Slack thread). Flip the last line to `Status: Ready for Spec`.
-2. **Spec.** Open FFA 1's run. Point at the business context section of the RFC (regulator, deadline, affected plans, exposure) and the `needs-human` issues it refused to guess on. Show the issue slicing table.
-3. **Context, head-on.** Run `/readiness-report` live (or show the dashboard). Then open `AGENTS.md`, `.factory/skills/`, `package.json` scripts, `.github/workflows/`. Say it plainly: the agent's confidence comes from the repo's own validation loops (lint, Vitest, JUnit, Playwright, QA skill, Droid review) plus carried instructions, not from grep. FFA 2's readiness comment on the issue repeats this per-run.
-4. **Implementation in the cloud.** Open FFA 2's run session while it works. The claim comment names the Droid Computer and host. No laptop involved.
-5. **Jenkins.** Open `Jenkinsfile`, then the identical `scripts/risk-router.sh`. If a Jenkins is handy, trigger the PR build; otherwise show the GitHub Actions run of "Droid Risk Router" and note the step is `sh ./scripts/risk-router.sh`.
-6. **Review with risk-based routing.** On the PR: Droid Auto Review findings, then the router comment. Read the deterministic rules that fired, the agent's reasons, the score, the route label, and the **human-review rate**. Tie it to the metric: today 100% of PRs are human-reviewed; the thresholds are the dial, the review findings are the evidence for turning it.
-7. **Close the loop.** Merge. Show the Loop Closer's docs PR and the Linear issue moving to Done. Post the alert; show the new `Prod:` issue and its routing. Finish on the `agents:` PR: the agent proposing a change to its own instructions, with evidence links, waiting for a human.
+### Beat 3 · Context, head-on
+
+6. FFA-14, first comment: the Implementer's **agent-readiness report**. It names the validation loops it will rely on (lint, JUnit, Vitest, Playwright, Droid review) and the instructions it carries (`AGENTS.md`, `.factory/skills/`). Then open `AGENTS.md` and `.factory/skills/` on `main` and say it plainly: confidence comes from the repo's own feedback loops, not from grep.
+7. Optional: `/readiness-report` output from the one-time setup, or the readiness dashboard.
+
+### Beat 4 · Implementation in the cloud
+
+8. Factory → Automations → **FFA 2 · Issue Implementer**, run at **03:35**. The claim comment on FFA-14 names the Droid Computer and host. No laptop.
+9. [PR #15 `feat(tickets): FFA-14 add auditable ticket deadline reporting`](https://github.com/factory-calvin/telecom-autonomy-demo/pull/15) (merged `3c11017`, +912/−43, 17 files): `TicketDeadlineService`, a 15-minute `@Scheduled` reconciliation job, schema initializer, seeder, tests, docs. The PR body carries the risk self-assessment and "Lessons for AGENTS.md".
+
+### Beat 5 · Jenkins
+
+10. [`Jenkinsfile`](https://github.com/factory-calvin/telecom-autonomy-demo/blob/main/Jenkinsfile) next to [`scripts/risk-router.sh`](https://github.com/factory-calvin/telecom-autonomy-demo/blob/main/scripts/risk-router.sh): the same script runs in a plain `sh` step. Then the GitHub Actions run "Droid Risk Router" on PR #15: the step is `sh ./scripts/risk-router.sh`. Headless Droid is a CLI.
+
+### Beat 6 · Review with risk-based routing
+
+11. PR #15 conversation, in order:
+    - Droid Auto Review inline finding, **P1**: a resolved ticket projected "as of" a time before its own resolution was evaluated at `resolvedAt`, not `asOf`. Real bug, caught before a human looked.
+    - Router comment: deterministic floors that fired (schema, API), the agent's reasons, **score 74 → `risk:high` → `needs-human-review`**, the `route` check failing on purpose, and the trailing **human-review rate**.
+    - Reviewer's fix commit (`evaluationTime()` = `min(resolvedAt, asOf)` plus a regression test) and the reply on the review thread.
+12. [PR #16 `style(tickets): wrap comment to satisfy spotless`](https://github.com/factory-calvin/telecom-autonomy-demo/pull/16) (score 3, auto-merged). Honesty exhibit: the reviewer admin-merged #15 while Backend CI was still red on a formatting check. The pipeline noticed; the human did not. Say so.
+13. [PR #18 `feat(tickets): FFA-15 show ticket age and SLA deadlines`](https://github.com/factory-calvin/telecom-autonomy-demo/pull/18) (merged `a8104a3`, +513/−73): frontend half, **score 42 → `risk:medium`**, Droid review found no P0/P1, human reviewed and squash-merged. Contrast with #15: same author, different route.
+
+### Beat 7 · Close the loop
+
+14. Factory → Automations → **FFA 3 · Loop Closer**, run at **04:10**: processed PRs 13–16, opened [PR #17 docs](https://github.com/factory-calvin/telecom-autonomy-demo/pull/17) (score 6, auto-merged), moved FFA-14 → Done, and moved FFA-15 Backlog → Todo with a `🔓 Unblocked by #15` comment. That handoff is what let the Implementer pick up the frontend work in the next tick.
+15. Production signal: [alert thread in `#demo-alerts-channel`](https://factory-ai.slack.com/archives/C0C15NZ9C83/p1789358995346009) at 04:09: `GET /api/tickets?deadlineState=RESOLUTION_OVERDUE p95 3.9s since deploy of 3c11017`. The Loop Closer's in-thread reply links the issue it opened.
+16. [FFA-16 `Prod: resolution-overdue ticket filter latency`](https://linear.app/factoryai/issue/FFA-16): priority 1, `from-prod-signal`, `agent-ready`. Read the **Hypothesis**: it names the exact method in PR #15 (unpaged `findFiltered` + per-row `project()`) as the likely regression. Signal → root-cause hypothesis → acceptance criteria with a p95 target, without a human.
+17. [PR #19 `feat(tickets): FFA-16 optimize overdue ticket filtering`](https://github.com/factory-calvin/telecom-autonomy-demo/pull/19) (merged `d64809c`): native SQL CTE that filters and pages in the database. **Score 68 → `risk:medium`**. Droid review **P1**: `ORDER BY` on a mixed-type SQLite column would break pagination; reviewer fixed it (`cc7c88f`), the integration test that compares the native query to the JPQL reference caught a tie-break difference on the first attempt, and the PR merged only after every check was green.
+18. Finish on [PR #12 `chore(agents): document Droid Java trust store`](https://github.com/factory-calvin/telecom-autonomy-demo/pull/12) with [FFA-9](https://linear.app/factoryai/issue/FFA-9): the agent proposing a change to its own instructions after two runs lost time to the same environment quirk, labeled `agent-instructions`, `risk:medium`, `needs-human-review`. Instruction and pipeline files never auto-merge regardless of score (PR #9). It is left open on purpose. Do not merge it before the show.
+
+### Operational lessons from the two runs (say these if asked "what broke?")
+
+- **Lock contention.** All three automations ran on the same minute; the Implementer took the checkout lock before checking Linear, so the Spec Writer skipped twice. Fix: staggered schedules (Spec Writer `*/10`, Implementer `5-59/10`, Loop Closer `7-59/15`) and the Implementer now queries Linear first and only takes the lock when it has work.
+- **Slack connector.** `get_conversation_history` returns nothing when `hours_ago`/`days_ago` is set. The Loop Closer read the channel with a time filter and missed the first alert for one tick. Prompts now read unfiltered and filter by `ts` against state.
+- **Human error is the risk the router models.** PR #15 was admin-merged with a red Backend check (`spotlessJavaCheck` on a hand-edited comment). PR #16 fixed it two minutes later. The `route` check is the only required check; everything else relies on the reviewer reading the checks.
+- **Scorer variance.** The LLM score moves a few points between runs of the same PR (#15 scored 78 then 74; #19 scored 64 then 68). The deterministic floors and the never-auto-merge file rules are what make routing predictable; the score is the tie-breaker within a band.
+- **Self-merge incident (first run).** PR #3, the first `agents:` proposal, auto-merged because the docs-only cap applied to `AGENTS.md`. PR #6 and PR #9 fixed the router; PR #12 shows the corrected behaviour. Keep the `AGENTS.md` CI Security section from PR #3; it is correct and harmless.
+
+### State as staged
+
+- **Automations:** paused. Resume only if you want to run a third loop; see "Reset between runs".
+- **Open PRs:** exactly one, #12. Shared checkout clean on `main`, no `checkout.lock`.
+- **Linear FFA:** FFA-3, 6, 7, 8, 11, 12, 13, 14, 15, 16 Done; FFA-9 open (PR #12); FFA-1, 2, 4, 5 in Backlog as the first RFC's `needs-human` decisions; FFA-10 parent.
+- **Notion:** both market-rule pages carry their `Droid Spec:` callout. A tour page with the same links as this section sits under `Calvin_DemoDoc`.
+- `RISK_AUTO_MERGE=true`, "Allow auto-merge" on, ruleset on `main` requires `route`, admins bypass.
 
 ## Reset between runs
 
