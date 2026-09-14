@@ -109,8 +109,12 @@ Current-cycle data uses the half-open UTC calendar month: the first day at
 - `asOf` - Optional ISO-8601 instant used for reproducible projections
 
 The deadline filter is applied before pagination. `totalElements`, `totalPages`,
-and `hasNext` therefore describe only the matching rows. The response includes
-the effective `as_of` instant, and each ticket includes:
+and `hasNext` therefore describe only the matching rows. Deadline
+classification and pagination run in SQLite, so the backend only materializes
+and projects the requested page. The query accepts both epoch-millisecond
+timestamps written by Hibernate and text timestamps written by the
+production-like Python seeder. The response includes the effective `as_of`
+instant, and each ticket includes:
 
 ```json
 {

@@ -7,6 +7,8 @@ import com.example.demo.repository.SupportTicketRepository;
 import com.example.demo.service.TicketDeadlineService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -51,7 +54,9 @@ class SupportTicketControllerTest {
         SupportTicket second = ticket(2L, SupportTicket.Status.IN_PROGRESS, "2026-08-03T11:00:00Z");
         second.setAcknowledgedAt(Instant.parse("2026-08-04T11:00:00Z"));
         SupportTicket onTrack = ticket(3L, SupportTicket.Status.OPEN, "2026-08-18T09:00:00Z");
-        when(repository.findFiltered(isNull(), isNull(), isNull())).thenReturn(List.of(first, second, onTrack));
+        when(repository.findFilteredByDeadline(isNull(), isNull(), isNull(), eq("RESOLUTION_OVERDUE"),
+                eq(NOW.toString()), eq(PageRequest.of(1, 1))))
+                .thenReturn(new PageImpl<>(List.of(second), PageRequest.of(1, 1), 2));
 
         mockMvc.perform(get("/api/tickets").param("deadlineState", "RESOLUTION_OVERDUE").param("page", "1")
                 .param("size", "1").param("asOf", NOW.toString())).andExpect(status().isOk())

@@ -109,7 +109,16 @@ below 500 ms, and the plan must contain
 Deadline unit and controller tests use fixed Java `Clock` values. They cover
 weekday and weekend deadlines, exact due and 24-hour boundaries, state
 precedence, filtered pagination, dashboard reconciliation, reopening, and
-idempotent priority escalation.
+idempotent priority escalation. The repository integration test also inserts
+5,000 tickets and verifies that a 50-row deadline page loads at most 50 ticket
+entities, so application-side full-table filtering cannot be reintroduced.
+
+Deadline-state classification runs in SQLite before pagination. The covering
+index `idx_support_tickets_deadline_filter` supports the ordered input scan and
+is created idempotently on backend startup and after Python seeding. SQLite
+stores Hibernate-created timestamps as epoch milliseconds and Python-seeded
+timestamps as text; the query normalizes both representations before applying
+the RFC's Monday-to-Friday boundaries and state precedence.
 
 For a manual audit without modifying the checked-in database, seed a disposable
 database and query both APIs with the same instant:
@@ -124,6 +133,20 @@ curl -X POST 'http://localhost:8080/api/tickets/reconcile-deadlines'
 The two GET responses must reconcile at their shared `as_of`. The second POST
 must report zero additional updates. The deterministic Python and fallback
 Java seed rows have subjects beginning with `SLA audit:`.
+
+For a production-sized disposable database, start the backend with
+`SPRING_DATASOURCE_URL=jdbc:sqlite:/tmp/ticket-benchmark.db`, then run:
+
+```bash
+python3 scripts/benchmark-ticket-deadlines.py \
+  --db /tmp/ticket-benchmark.db \
+  --url http://localhost:8080/api/tickets
+```
+
+The benchmark makes 5 warmup requests followed by 30 measured requests and
+fails unless p95 is below 500 ms. It also prints `EXPLAIN QUERY PLAN` and
+requires `idx_support_tickets_deadline_filter` in the plan. Keep the benchmark
+database outside the checkout; do not benchmark by reseeding `backend/app.db`.
 
 ## CI Integration
 

@@ -61,15 +61,11 @@ public class SupportTicketController {
                     result.getTotalElements(), result.hasNext(), effectiveAsOf);
         }
 
-        List<SupportTicket> filtered = repository.findFiltered(priorityEnum, statusEnum, customerId).stream()
-                .filter(ticket -> deadlineService.project(ticket, effectiveAsOf).deadlineState() == deadlineStateEnum)
-                .toList();
-        int pageSize = pageRequest.getPageSize();
-        int fromIndex = Math.min(page * pageSize, filtered.size());
-        int toIndex = Math.min(fromIndex + pageSize, filtered.size());
-        int totalPages = filtered.isEmpty() ? 0 : (int) Math.ceil((double) filtered.size() / pageSize);
-        return pagedResponse(filtered.subList(fromIndex, toIndex), page, totalPages, filtered.size(),
-                toIndex < filtered.size(), effectiveAsOf);
+        Page<SupportTicket> result = repository.findFilteredByDeadline(
+                priorityEnum != null ? priorityEnum.name() : null, statusEnum != null ? statusEnum.name() : null,
+                customerId, deadlineStateEnum.name(), effectiveAsOf.toString(), pageRequest);
+        return pagedResponse(result.getContent(), result.getNumber(), result.getTotalPages(), result.getTotalElements(),
+                result.hasNext(), effectiveAsOf);
     }
 
     @GetMapping("/{id}")

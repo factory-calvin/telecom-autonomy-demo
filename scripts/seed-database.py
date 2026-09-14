@@ -17,6 +17,7 @@ DB_PATH = Path(__file__).parent.parent / "backend" / "app.db"
 SEED = 42
 DATA_QUANTITY_UNIT = "MB"
 CURRENT_CYCLE_INDEX = "idx_usage_records_type_customer_recorded_at"
+TICKET_DEADLINE_INDEX = "idx_support_tickets_deadline_filter"
 
 random.seed(SEED)
 fake = Faker()
@@ -167,6 +168,7 @@ def drop_indexes(conn: sqlite3.Connection):
     """Drop indexes before destructive reseeding and bulk inserts."""
     cursor = conn.cursor()
     cursor.execute(f"DROP INDEX IF EXISTS {CURRENT_CYCLE_INDEX}")
+    cursor.execute(f"DROP INDEX IF EXISTS {TICKET_DEADLINE_INDEX}")
     conn.commit()
 
 
@@ -176,6 +178,12 @@ def create_indexes(conn: sqlite3.Connection):
     cursor.execute(f"""
         CREATE INDEX {CURRENT_CYCLE_INDEX}
         ON usage_records (type, customer_id, recorded_at)
+    """)
+    cursor.execute(f"""
+        CREATE INDEX {TICKET_DEADLINE_INDEX}
+        ON support_tickets (
+            created_at DESC, status, acknowledged_at, resolved_at, priority, customer_id
+        )
     """)
     conn.commit()
 
