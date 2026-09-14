@@ -1,0 +1,23 @@
+backend/src/main/java/com/example/demo/repository/SupportTicketRepository.java
+  5929f626c47a185b 121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "cc7c88f391bb80cd3973b4c188fa1a7889de6835",
+  "prompts": {
+    "5929f626c47a185b": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "86b359cb-9363-464c-b7df-b3c1bd49a268",
+        "model": "claude-fable-5.1"
+      },
+      "human_author": "factory-calvin",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
