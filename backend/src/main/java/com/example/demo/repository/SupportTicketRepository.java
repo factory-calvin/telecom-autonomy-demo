@@ -116,8 +116,9 @@ public interface SupportTicketRepository extends JpaRepository<SupportTicket, Lo
             SELECT t.*
             FROM support_tickets t
             JOIN classified c ON c.id = t.id
+            JOIN normalized n ON n.id = t.id
             WHERE c.deadline_state = :deadlineState
-            ORDER BY t.created_at DESC
+            ORDER BY n.created_at DESC, t.id ASC
             """, countQuery = DEADLINE_FILTER_CTE + """
             SELECT count(*)
             FROM classified
