@@ -51,6 +51,17 @@ risk flag. The customers page filters on those semantic API states rather than c
 thresholds in the browser. The filter uses pressed buttons with a programmatic group label,
 and risk badges retain visible text in light and dark themes so color is never the only cue.
 
+`tickets-table.tsx` shows API-provided whole-day and whole-hour age plus visible `On track`,
+`Due soon`, `Acknowledgement overdue`, or `Resolution overdue` text. Deadline badges include
+the exact acknowledgement and resolution due timestamps in their accessible label and
+tooltip. Light and dark themes use color as a secondary cue only. The tickets page passes
+the selected semantic state to the backend as `deadlineState`; it does not reproduce
+business-day calculations in the browser.
+
+The dashboard has separate Acknowledgement overdue, Resolution overdue, and Due soon cards.
+Each card displays the corresponding API value and labels it as a current ticket count, not
+a monthly breach-rate denominator.
+
 ### Form Dialogs
 
 CRUD dialogs for creating/editing entities:
