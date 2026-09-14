@@ -119,7 +119,12 @@ are UTC. Everything else is a direct link.
 17. [PR #19 `feat(tickets): FFA-16 optimize overdue ticket filtering`](https://github.com/factory-calvin/telecom-autonomy-demo/pull/19) (merged `d64809c`): native SQL CTE that filters and pages in the database. **Score 68 → `risk:medium`**. Droid review **P1**: `ORDER BY` on a mixed-type SQLite column would break pagination; reviewer fixed it (`cc7c88f`), the integration test that compares the native query to the JPQL reference caught a tie-break difference on the first attempt, and the PR merged only after every check was green.
 18. Finish on [PR #12 `chore(agents): document Droid Java trust store`](https://github.com/factory-calvin/telecom-autonomy-demo/pull/12) with [FFA-9](https://linear.app/factoryai/issue/FFA-9): the agent proposing a change to its own instructions after two runs lost time to the same environment quirk, labeled `agent-instructions`, `risk:medium`, `needs-human-review`. Instruction and pipeline files never auto-merge regardless of score (PR #9). It is left open on purpose. Do not merge it before the show.
 
-### Operational lessons from the two runs (say these if asked "what broke?")
+
+
+
+
+
+### Operational lessons from the two runs
 
 - **Lock contention.** All three automations ran on the same minute; the Implementer took the checkout lock before checking Linear, so the Spec Writer skipped twice. Fix: staggered schedules (Spec Writer `*/10`, Implementer `5-59/10`, Loop Closer `7-59/15`) and the Implementer now queries Linear first and only takes the lock when it has work.
 - **Slack connector.** `get_conversation_history` returns nothing when `hours_ago`/`days_ago` is set. The Loop Closer read the channel with a time filter and missed the first alert for one tick. Prompts now read unfiltered and filter by `ts` against state.
