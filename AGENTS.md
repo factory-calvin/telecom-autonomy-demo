@@ -98,6 +98,10 @@ pnpm dc exec <cmd>    # Run any command in container
 
 ### Local Development (requires Node.js 22, Java 25, Python 3)
 
+On the shared Droid Computer, Java 25 has no readable default `cacerts`. Before running
+backend Gradle commands there, use the temporary trust store procedure documented in
+`demo/autonomy-demo/README.md`; never change project or system trust configuration.
+
 ```bash
 # Setup
 pnpm setup            # Install deps + seed database
